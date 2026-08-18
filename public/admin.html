@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nova Commerce | Merchant Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    @media print {
+      body * { visibility: hidden; }
+      #printable-invoice, #printable-invoice * { visibility: visible; }
+      #printable-invoice { position: absolute; left: 0; top: 0; width: 100%; }
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-900 min-h-screen flex flex-col font-sans">
+
+  <!-- ADMIN LOGIN OVERLAY -->
+  <div id="modal-admin-login" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+      <div class="border-b pb-2">
+        <h3 class="text-lg font-bold text-slate-800">Merchant Portal Login 🔒</h3>
+      </div>
+      <p class="text-xs text-slate-500">Default: <b class="text-indigo-600">admin / admin123</b></p>
+      <div id="admin-login-error" class="hidden bg-rose-50 text-rose-700 text-xs font-semibold p-2.5 rounded-xl"></div>
+      <div class="space-y-3">
+        <input type="text" id="a-login-user" value="admin" placeholder="Username" class="w-full border rounded-xl p-2.5 text-sm" />
+        <input type="password" id="a-login-pass" value="admin123" placeholder="Password" class="w-full border rounded-xl p-2.5 text-sm" />
+        <button type="button" onclick="executeAdminLogin()" class="w-full bg-slate-900 hover:bg-black text-white font-bold text-sm py-2.5 rounded-xl transition">Log In to Dashboard ➔</button>
+      </div>
+      <div class="text-center pt-2">
+        <a href="/" class="text-xs text-indigo-600 font-bold hover:underline">← Back to Customer Storefront</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN APP CONTAINER -->
+  <div id="admin-app" class="hidden flex-1 flex flex-col">
+    <header class="bg-white border-b sticky top-0 z-40 shadow-sm">
+      <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center gap-3">
+          <span class="bg-slate-900 text-white font-black text-sm px-2.5 py-1 rounded-lg">ADMIN</span>
+          <div>
+            <h1 id="merchant-store-title" class="font-bold text-lg text-slate-800 leading-tight">Merchant Portal</h1>
+            <p class="text-[10px] text-slate-400 font-medium">Advanced Control Suite</p>
+          </div>
+        </div>
+
+        <nav class="flex items-center bg-slate-100 p-1 rounded-xl gap-1 text-xs md:text-sm font-medium">
+          <button type="button" onclick="switchAdminTab('dispatch')" id="tab-dispatch" class="px-3.5 py-1.5 rounded-lg bg-white shadow-sm text-indigo-600 font-semibold">Orders & Analytics</button>
+          <button type="button" onclick="switchAdminTab('inventory')" id="tab-inventory" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Products & Profits</button>
+          <button type="button" onclick="switchAdminTab('coupons')" id="tab-coupons" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Coupons & Promo</button>
+          <button type="button" onclick="switchAdminTab('customizer')" id="tab-customizer" class="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Branding & Security</button>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <a href="/" target="_blank" class="text-xs font-bold border px-3 py-2 rounded-xl text-indigo-600 hover:bg-indigo-50">View Store ↗</a>
+          <button type="button" onclick="adminLogout()" class="text-xs font-bold border border-rose-200 text-rose-600 px-3 py-2 rounded-xl hover:bg-rose-50">Logout</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full space-y-6">
+      
+      <!-- LOW STOCK ALERT BANNER -->
+      <div id="low-stock-banner" class="hidden bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-2xl flex items-center justify-between text-xs font-semibold">
+        <div class="flex items-center gap-2">
+          <span>⚠️</span>
+          <span id="low-stock-text">Warning: Some products are running low on stock (< 5 units).</span>
+        </div>
+        <button onclick="switchAdminTab('inventory')" class="underline font-bold">Manage Stock</button>
+      </div>
+
+      <!-- 1. ORDERS & ANALYTICS TAB -->
+      <section id="admin-view-dispatch" class="space-y-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-2xl border shadow-sm">
+            <p class="text-xs text-slate-400 font-bold uppercase">Total Revenue</p>
+            <h3 id="stat-revenue" class="text-2xl font-black text-slate-800 mt-1">₹0.00</h3>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border shadow-sm">
+            <p class="text-xs text-slate-400 font-bold uppercase">Estimated Gross Profit</p>
+            <h3 id="stat-profit" class="text-2xl font-black text-emerald-600 mt-1">₹0.00</h3>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border shadow-sm">
+            <p class="text-xs text-slate-400 font-bold uppercase">Pending Dispatch</p>
+            <h3 id="stat-pending" class="text-2xl font-black text-amber-600 mt-1">0</h3>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border shadow-sm">
+            <p class="text-xs text-slate-400 font-bold uppercase">Total Units Sold</p>
+            <h3 id="stat-units" class="text-2xl font-black text-indigo-600 mt-1">0</h3>
+          </div>
+        </div>
+
+        <!-- REVENUE TREND CHART CARD -->
+        <div class="bg-white border rounded-3xl p-6 shadow-sm space-y-3">
+          <h3 class="text-base font-bold text-slate-800">Visual Revenue & Sales Trend 📈</h3>
+          <div class="h-64 relative">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <div class="bg-white border rounded-2xl p-4 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
+          <div class="relative w-full md:w-80">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400 text-sm">🔍</span>
+            <input type="text" id="order-search" oninput="loadAdminOrders()" placeholder="Search by Order ID or name..." class="w-full border rounded-xl pl-9 pr-4 py-2 text-sm" />
+          </div>
+          <div class="flex items-center gap-2 w-full md:w-auto justify-end">
+            <select id="order-status-filter" onchange="loadAdminOrders()" class="border rounded-xl px-3 py-2 text-xs font-semibold bg-white">
+              <option value="all">All Statuses</option>
+              <option value="Pending Dispatch">Pending Dispatch</option>
+              <option value="Dispatched">Dispatched</option>
+              <option value="Delivered">Delivered</option>
+            </select>
+            <button type="button" onclick="loadAdminOrders()" class="text-xs font-bold text-indigo-600 hover:underline px-2">Refresh</button>
+          </div>
+        </div>
+
+        <div id="admin-orders-container" class="space-y-3"></div>
+      </section>
+
+      <!-- 2. PRODUCTS & PROFITS TAB -->
+      <section id="admin-view-inventory" class="hidden space-y-6">
+        <div class="bg-white border rounded-2xl p-6 shadow-sm space-y-3">
+          <h3 class="text-lg font-bold text-slate-800">Add Product with Cost & Selling Price</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-3">
+            <input type="text" id="new-prod-name" placeholder="Title *" class="border rounded-xl p-2.5 text-sm" />
+            <input type="number" id="new-prod-price" placeholder="Selling Price (₹) *" class="border rounded-xl p-2.5 text-sm" />
+            <input type="number" id="new-prod-cost" placeholder="Cost Price (₹)" class="border rounded-xl p-2.5 text-sm" />
+            <input type="text" id="new-prod-category" placeholder="Category" class="border rounded-xl p-2.5 text-sm" />
+            <input type="number" id="new-prod-stock" placeholder="Stock" class="border rounded-xl p-2.5 text-sm" />
+            <input type="text" id="new-prod-sizes" placeholder="Sizes" class="border rounded-xl p-2.5 text-sm" />
+            <input type="url" id="new-prod-image" placeholder="Image URL" class="border rounded-xl p-2.5 text-sm" />
+            <div class="md:col-span-3 lg:col-span-7 flex justify-end">
+              <button type="button" onclick="addNewProduct()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition">+ Publish Product</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-100 text-xs uppercase text-slate-500 border-b">
+              <tr><th class="p-4">Product</th><th class="p-4">Selling Price</th><th class="p-4">Cost Price</th><th class="p-4">Profit Margin</th><th class="p-4">Stock</th><th class="p-4 text-right">Action</th></tr>
+            </thead>
+            <tbody id="inventory-table-body" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 3. COUPONS TAB -->
+      <section id="admin-view-coupons" class="hidden space-y-6">
+        <div class="bg-white border rounded-2xl p-6 shadow-sm max-w-xl space-y-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-800">Create Discount Coupon</h3>
+            <p class="text-xs text-slate-500">Offer percentage discounts for customer carts.</p>
+          </div>
+          <form onsubmit="createNewCoupon(event)" class="space-y-3">
+            <input type="text" id="coup-code" placeholder="Coupon Code (e.g. SAVE20) *" required class="w-full border rounded-xl p-2.5 text-sm uppercase" />
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" id="coup-percent" placeholder="Discount % (e.g. 15) *" required class="border rounded-xl p-2.5 text-sm" />
+              <input type="number" id="coup-min" placeholder="Min Cart Spend (₹)" class="border rounded-xl p-2.5 text-sm" />
+            </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition">Create Coupon</button>
+          </form>
+        </div>
+
+        <div class="bg-white border rounded-2xl shadow-sm overflow-hidden max-w-3xl">
+          <table class="w-full text-left text-sm text-slate-600">
+            <thead class="bg-slate-100 text-xs uppercase text-slate-500 border-b">
+              <tr><th class="p-4">Code</th><th class="p-4">Discount</th><th class="p-4">Min Spend</th><th class="p-4 text-right">Action</th></tr>
+            </thead>
+            <tbody id="coupons-table-body" class="divide-y"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. BRANDING & SECURITY -->
+      <section id="admin-view-customizer" class="hidden space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-white border rounded-3xl p-6 shadow-sm space-y-4">
+            <h3 class="text-lg font-bold text-slate-800">Store Branding</h3>
+            <div id="brand-msg" class="hidden text-xs font-semibold p-2.5 rounded-xl"></div>
+            <form onsubmit="saveBrandingSettings(event)" class="space-y-3">
+              <input type="text" id="set-storename" placeholder="Store Name" required class="w-full border rounded-xl p-2.5 text-sm" />
+              <input type="text" id="set-tagline" placeholder="Tagline" class="w-full border rounded-xl p-2.5 text-sm" />
+              <input type="text" id="set-announcement" placeholder="Announcement Banner" class="w-full border rounded-xl p-2.5 text-sm" />
+              <div class="grid grid-cols-2 gap-2">
+                <input type="text" id="set-currency" maxlength="3" placeholder="Currency (₹)" class="border rounded-xl p-2.5 text-sm" />
+                <input type="color" id="set-themecolor" class="w-full h-11 border rounded-xl p-1 bg-white cursor-pointer" />
+              </div>
+              <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold transition">Save Branding</button>
+            </form>
+          </div>
+
+          <div class="bg-white border rounded-3xl p-6 shadow-sm space-y-4">
+            <h3 class="text-lg font-bold text-slate-800">Admin Security</h3>
+            <div id="settings-alert-box" class="hidden text-xs font-semibold p-2.5 rounded-xl"></div>
+            <div class="space-y-3">
+              <input type="password" id="sec-current-pass" placeholder="Current Password *" class="w-full border rounded-xl p-2.5 text-sm" />
+              <input type="text" id="sec-new-user" placeholder="New Username" class="w-full border rounded-xl p-2.5 text-sm" />
+              <input type="password" id="sec-new-pass" placeholder="New Password" class="w-full border rounded-xl p-2.5 text-sm" />
+              <button type="button" onclick="updateAdminCredentials()" class="w-full bg-slate-900 hover:bg-black text-white py-2.5 rounded-xl text-xs font-bold transition">Update Credentials</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="printable-invoice" class="hidden p-8 bg-white text-black font-mono"></div>
+
+  <script>
+    let products = [];
+    let storeSettings = {};
+    let revenueChartInstance = null;
+
+    function checkAdminAuth() {
+      if (localStorage.getItem('isAdminLoggedIn') === 'true') {
+        document.getElementById('modal-admin-login').classList.add('hidden');
+        document.getElementById('admin-app').classList.remove('hidden');
+        switchAdminTab('dispatch');
+      } else {
+        document.getElementById('modal-admin-login').classList.remove('hidden');
+        document.getElementById('admin-app').classList.add('hidden');
+      }
+    }
+
+    async function executeAdminLogin() {
+      const username = document.getElementById('a-login-user').value.trim();
+      const password = document.getElementById('a-login-pass').value.trim();
+      const err = document.getElementById('admin-login-error');
+      err.classList.add('hidden');
+
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        localStorage.setItem('isAdminLoggedIn', 'true');
+        checkAdminAuth();
+      } else {
+        err.innerText = data.error || 'Invalid credentials.';
+        err.classList.remove('hidden');
+      }
+    }
+
+    function adminLogout() {
+      localStorage.removeItem('isAdminLoggedIn');
+      checkAdminAuth();
+    }
+
+    function switchAdminTab(tab) {
+      ['dispatch', 'inventory', 'coupons', 'customizer'].forEach(t => {
+        document.getElementById(`admin-view-${t}`).classList.toggle('hidden', t !== tab);
+        document.getElementById(`tab-${t}`).className = t === tab ? 'px-3.5 py-1.5 rounded-lg bg-white shadow-sm text-indigo-600 font-semibold' : 'px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900';
+      });
+      if (tab === 'dispatch') loadAdminOrders();
+      if (tab === 'inventory') renderInventoryTable();
+      if (tab === 'coupons') loadCouponsTable();
+      if (tab === 'customizer') loadSettingsForm();
+    }
+
+    async function loadSettingsForm() {
+      const res = await fetch('/api/settings');
+      storeSettings = await res.json();
+      document.getElementById('merchant-store-title').innerText = `${storeSettings.storeName} | Merchant Portal`;
+      document.getElementById('set-storename').value = storeSettings.storeName;
+      document.getElementById('set-tagline').value = storeSettings.tagline;
+      document.getElementById('set-announcement').value = storeSettings.announcement;
+      document.getElementById('set-currency').value = storeSettings.currency || '₹';
+      document.getElementById('set-themecolor').value = storeSettings.themeColor || '#4f46e5';
+    }
+
+    async function saveBrandingSettings(e) {
+      e.preventDefault();
+      const payload = {
+        storeName: document.getElementById('set-storename').value.trim(),
+        tagline: document.getElementById('set-tagline').value.trim(),
+        announcement: document.getElementById('set-announcement').value.trim(),
+        currency: document.getElementById('set-currency').value.trim(),
+        themeColor: document.getElementById('set-themecolor').value
+      };
+      const res = await fetch('/api/admin/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const box = document.getElementById('brand-msg');
+      if (res.ok) {
+        box.innerText = 'Branding updated successfully!';
+        box.className = 'bg-emerald-50 text-emerald-700 text-xs font-semibold p-2.5 rounded-xl block';
+        loadSettingsForm();
+      }
+    }
+
+    async function updateAdminCredentials() {
+      const currentPassword = document.getElementById('sec-current-pass').value.trim();
+      const newUsername = document.getElementById('sec-new-user').value.trim();
+      const newPassword = document.getElementById('sec-new-pass').value.trim();
+      const msg = document.getElementById('settings-alert-box');
+      msg.classList.add('hidden');
+
+      const res = await fetch('/api/admin/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newUsername, newPassword })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        msg.innerText = 'Credentials updated! Please log in again.';
+        msg.className = 'bg-emerald-50 text-emerald-700 text-xs font-semibold p-2.5 rounded-xl block';
+        setTimeout(() => adminLogout(), 1500);
+      } else {
+        msg.innerText = data.error || 'Update failed';
+        msg.className = 'bg-rose-50 text-rose-700 text-xs font-semibold p-2.5 rounded-xl block';
+      }
+    }
+
+    async function loadAdminOrders() {
+      await loadSettingsForm();
+      const res = await fetch('/api/orders');
+      const orders = await res.json();
+      const aRes = await fetch('/api/admin/analytics');
+      const a = await aRes.json();
+      const sym = storeSettings.currency || '₹';
+
+      document.getElementById('stat-revenue').innerText = `${sym}${a.totalRevenue}`;
+      document.getElementById('stat-profit').innerText = `${sym}${a.estimatedProfit}`;
+      document.getElementById('stat-pending').innerText = a.pendingOrders;
+      document.getElementById('stat-units').innerText = a.totalUnitsSold;
+
+      renderRevenueChart(a.chartData, sym);
+
+      const lowBanner = document.getElementById('low-stock-banner');
+      if (a.lowStockCount > 0) {
+        document.getElementById('low-stock-text').innerText = `Warning: ${a.lowStockCount} product(s) are running low on stock (< 5 units).`;
+        lowBanner.classList.remove('hidden');
+      } else {
+        lowBanner.classList.add('hidden');
+      }
+
+      const query = (document.getElementById('order-search').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('order-status-filter').value;
+
+      let filtered = orders.filter(o => {
+        const matchQ = o.orderId.toLowerCase().includes(query) || o.customer.name.toLowerCase().includes(query) || o.customer.phone.includes(query);
+        const matchS = statusFilter === 'all' || o.status === statusFilter;
+        return matchQ && matchS;
+      });
+
+      const container = document.getElementById('admin-orders-container');
+      if (filtered.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">No orders match your search criteria.</p>';
+        return;
+      }
+
+      container.innerHTML = filtered.map(o => {
+        const waDispatched = `https://wa.me/917899985086?text=${encodeURIComponent(`Hi ${o.customer.name}, great news! Your order *${o.orderId}* has been *Dispatched* from ${storeSettings.storeName}.`)}`;
+        const waDelivery = `https://wa.me/917899985086?text=${encodeURIComponent(`Hi ${o.customer.name}, your order *${o.orderId}* is *Out for Delivery* today from ${storeSettings.storeName}.`)}`;
+        const waDelivered = `https://wa.me/917899985086?text=${encodeURIComponent(`Hi ${o.customer.name}, your order *${o.orderId}* has been successfully *Delivered*! Thank you for shopping with ${storeSettings.storeName}.`)}`;
+
+        return `
+        <div class="bg-white border rounded-2xl p-4 shadow-sm space-y-3 text-xs">
+          <div class="flex justify-between items-center border-b pb-2">
+            <div>
+              <span class="font-mono font-bold text-indigo-600">${o.orderId}</span>
+              <span class="bg-indigo-50 text-indigo-700 font-bold px-2 py-0.5 rounded ml-2">${o.paymentMethod}</span>
+              <span class="text-slate-400 ml-2">${new Date(o.date).toLocaleString()}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="printInvoice('${o.orderId}')" class="border px-2.5 py-1 rounded-lg font-bold text-slate-700 hover:bg-slate-50">🖨️ Print Invoice</button>
+              <select onchange="updateStatus('${o.orderId}', this.value)" class="border rounded-lg p-1 font-bold">
+                <option value="Pending Dispatch" ${o.status === 'Pending Dispatch' ? 'selected' : ''}>Pending Dispatch</option>
+                <option value="Dispatched" ${o.status === 'Dispatched' ? 'selected' : ''}>Dispatched</option>
+                <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+              </select>
+            </div>
+          </div>
+          <p><strong>Customer:</strong> ${o.customer.name} (${o.customer.phone}) - ${o.customer.address}, ${o.customer.city} (${o.customer.zip})</p>
+          <p><strong>Items:</strong> ${o.items.map(i => `${i.name} <span class="text-indigo-600 font-semibold">(Size: ${i.selectedSize})</span> (x${i.quantity})`).join(', ')}</p>
+          
+          <div class="flex flex-wrap justify-between items-center pt-2 border-t gap-2">
+            <span class="font-bold">Total: ${sym}${o.total.toFixed(2)} (${o.paymentStatus})</span>
+            
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <a href="${waDispatched}" target="_blank" class="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-lg font-bold hover:bg-emerald-100 transition flex items-center gap-1"><span>🚚</span> Dispatched WA</a>
+              <a href="${waDelivery}" target="_blank" class="bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-lg font-bold hover:bg-indigo-100 transition flex items-center gap-1"><span>📦</span> Out for Delivery WA</a>
+              <a href="${waDelivered}" target="_blank" class="bg-sky-50 text-sky-700 border border-sky-200 px-2.5 py-1 rounded-lg font-bold hover:bg-sky-100 transition flex items-center gap-1"><span>✨</span> Delivered WA</a>
+            </div>
+          </div>
+        </div>
+      `;
+      }).join('');
+    }
+
+    function renderRevenueChart(chartData, sym) {
+      const ctx = document.getElementById('revenueChart').getContext('2d');
+      if (revenueChartInstance) revenueChartInstance.destroy();
+
+      const labels = chartData.dates.length ? chartData.dates : [new Date().toISOString().split('T')[0]];
+      const totals = chartData.totals.length ? chartData.totals : [0];
+
+      revenueChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: `Daily Revenue (${sym})`,
+            data: totals,
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, ticks: { font: { size: 10 } } },
+            x: { ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    }
+
+    async function updateStatus(id, status) {
+      await fetch(`/api/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadAdminOrders();
+    }
+
+    function printInvoice(orderId) {
+      fetch('/api/orders')
+        .then(res => res.json())
+        .then(orders => {
+          const o = orders.find(x => x.orderId === orderId);
+          if (!o) return;
+          const sym = storeSettings.currency || '₹';
+          const printable = document.getElementById('printable-invoice');
+          printable.innerHTML = `
+            <div style="max-width: 600px; margin: auto; padding: 20px; font-family: monospace;">
+              <h2 style="text-align: center; margin-bottom: 5px;">${storeSettings.storeName}</h2>
+              <p style="text-align: center; font-size: 11px; color: #555;">${storeSettings.tagline}</p>
+              <hr style="border: 1px dashed #333; margin: 15px 0;"/>
+              <p><strong>Order ID:</strong> ${o.orderId}</p>
+              <p><strong>Date:</strong> ${new Date(o.date).toLocaleString()}</p>
+              <p><strong>Customer:</strong> ${o.customer.name} (${o.customer.phone})</p>
+              <p><strong>Address:</strong> ${o.customer.address}, ${o.customer.city} - ${o.customer.zip}</p>
+              <p><strong>Payment:</strong> ${o.paymentMethod} (${o.paymentStatus})</p>
+              <hr style="border: 1px dashed #333; margin: 15px 0;"/>
+              <table style="width: 100%; text-align: left; font-size: 12px;">
+                <tr><th>Item & Size</th><th>Qty</th><th style="text-align:right;">Price</th></tr>
+                ${o.items.map(i => `<tr><td>${i.name} (${i.selectedSize})</td><td>${i.quantity}</td><td style="text-align:right;">${sym}${(i.price * i.quantity).toFixed(2)}</td></tr>`).join('')}
+              </table>
+              <hr style="border: 1px dashed #333; margin: 15px 0;"/>
+              <h3 style="text-align: right;">Total: ${sym}${o.total.toFixed(2)}</h3>
+              <p style="text-align: center; font-size: 11px; margin-top: 30px;">Thank you for shopping with us!</p>
+            </div>
+          `;
+          printable.classList.remove('hidden');
+          window.print();
+          printable.classList.add('hidden');
+        });
+    }
+
+    async function renderInventoryTable() {
+      const res = await fetch('/api/products');
+      products = await res.json();
+      const sym = storeSettings.currency || '₹';
+      document.getElementById('inventory-table-body').innerHTML = products.map(p => {
+        const cost = p.costPrice || 0;
+        const profit = p.price - cost;
+        const margin = p.price > 0 ? ((profit / p.price) * 100).toFixed(1) : 0;
+        return `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-semibold text-slate-800 flex items-center gap-3"><img src="${p.image}" class="w-8 h-8 rounded-lg object-cover" />${p.name}</td>
+          <td class="p-4 font-bold text-slate-800">${sym}${p.price.toFixed(2)}</td>
+          <td class="p-4 text-slate-500">${sym}${cost.toFixed(2)}</td>
+          <td class="p-4">
+            <span class="bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded text-xs">
+              +${sym}${profit.toFixed(2)} (${margin}%)
+            </span>
+          </td>
+          <td class="p-4">
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold ${p.stock <= 4 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+              ${p.stock} units ${p.stock <= 4 ? '⚠️ Low' : ''}
+            </span>
+          </td>
+          <td class="p-4 text-right"><button type="button" onclick="deleteProduct(${p.id})" class="text-rose-600 hover:underline text-xs font-bold">Delete</button></td>
+        </tr>
+      `;
+      }).join('');
+    }
+
+    async function addNewProduct() {
+      const payload = {
+        name: document.getElementById('new-prod-name').value.trim(),
+        price: document.getElementById('new-prod-price').value.trim(),
+        costPrice: document.getElementById('new-prod-cost').value.trim(),
+        category: document.getElementById('new-prod-category').value.trim(),
+        stock: document.getElementById('new-prod-stock').value.trim(),
+        sizes: document.getElementById('new-prod-sizes').value.trim(),
+        image: document.getElementById('new-prod-image').value.trim()
+      };
+      if (!payload.name || !payload.price) return alert('Name and Selling Price required.');
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        alert('Product published with profit margins!');
+        renderInventoryTable();
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Delete product?')) return;
+      await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      renderInventoryTable();
+    }
+
+    async function loadCouponsTable() {
+      const res = await fetch('/api/admin/coupons');
+      const coupons = await res.json();
+      document.getElementById('coupons-table-body').innerHTML = coupons.map(c => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-mono font-bold text-indigo-600">${c.code}</td>
+          <td class="p-4 font-bold">${c.discountPercent}% OFF</td>
+          <td class="p-4">Min Spend: ₹${c.minSpend}</td>
+          <td class="p-4 text-right"><button onclick="deleteCoupon('${c.code}')" class="text-rose-600 hover:underline text-xs font-bold">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function createNewCoupon(e) {
+      e.preventDefault();
+      const payload = {
+        code: document.getElementById('coup-code').value.trim(),
+        discountPercent: document.getElementById('coup-percent').value.trim(),
+        minSpend: document.getElementById('coup-min').value.trim() || 0
+      };
+      const res = await fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (res.ok) {
+        alert('Coupon created!');
+        e.target.reset();
+        loadCouponsTable();
+      }
+    }
+
+    async function deleteCoupon(code) {
+      if (!confirm(`Delete coupon ${code}?`)) return;
+      await fetch(`/api/admin/coupons/${code}`, { method: 'DELETE' });
+      loadCouponsTable();
+    }
+
+    checkAdminAuth();
+  </script>
+</body>
+</html>

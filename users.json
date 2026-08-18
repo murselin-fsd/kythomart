@@ -1,0 +1,24 @@
+[
+  {
+    "id": "USR-1001",
+    "name": "Demo Customer",
+    "email": "user@example.com",
+    "password": "user123",
+    "phone": "9876543210",
+    "address": "221B Baker Street",
+    "city": "Bengaluru",
+    "zip": "560001",
+    "wishlist": []
+  },
+  {
+    "id": "USR-1787043233216",
+    "name": "MURSELIN KHAN",
+    "email": "murselin.khan.320@gmail.com",
+    "password": "@Akash.786082",
+    "phone": "08250628028",
+    "address": "20th main road,Raghavendra layout,garvebhavi palya, karnataka,560068\nmico layout",
+    "city": "Bangalore",
+    "zip": "560068",
+    "wishlist": []
+  }
+]

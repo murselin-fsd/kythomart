@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storefront & Dispatch Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col font-sans">
+  <header class="bg-white border-b sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center gap-2 cursor-pointer" onclick="switchTab('store')">
+        <span class="bg-indigo-600 text-white font-black text-sm px-2.5 py-1 rounded-lg">STORE</span>
+        <span class="font-bold text-lg tracking-tight text-slate-800">Dispatch Commerce</span>
+      </div>
+      <nav class="flex items-center bg-slate-100 p-1 rounded-xl gap-1 text-sm font-medium">
+        <button onclick="switchTab('store')" id="tab-store" class="px-4 py-1.5 rounded-lg bg-white shadow-sm text-indigo-600 font-semibold">Storefront</button>
+        <button onclick="switchTab('inventory')" id="tab-inventory" class="px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Manage Products 🔒</button>
+        <button onclick="switchTab('dispatch')" id="tab-dispatch" class="px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Dispatch Orders 🔒</button>
+      </nav>
+      <div class="flex items-center gap-2">
+        <button id="auth-btn" onclick="handleAuthClick()" class="text-xs font-bold border px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-50 transition">Admin Login</button>
+        <button onclick="toggleCart()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-2 transition">
+          <span>Cart</span>
+          <span id="cart-count" class="bg-white text-indigo-600 text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main class="max-w-7xl mx-auto px-4 py-8 flex-1 w-full">
+    <section id="view-store">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-slate-800">Product Catalog</h2>
+        <p class="text-xs text-slate-500">Pick products and place your order.</p>
+      </div>
+      <div id="product-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+    </section>
+    <section id="view-inventory" class="hidden space-y-6">
+      <div class="bg-white border rounded-2xl p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-slate-800 mb-1">Add New Product</h3>
+        <p class="text-xs text-slate-500 mb-4">Add products to your catalog dynamically.</p>
+        <form onsubmit="addProduct(event)" class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <input type="text" id="prod-name" placeholder="Product Name" required class="border rounded-xl p-2.5 text-sm" />
+          <input type="number" step="0.01" id="prod-price" placeholder="Price ($)" required class="border rounded-xl p-2.5 text-sm" />
+          <input type="text" id="prod-category" placeholder="Category" class="border rounded-xl p-2.5 text-sm" />
+          <input type="number" id="prod-stock" placeholder="Stock Units" required class="border rounded-xl p-2.5 text-sm" />
+          <input type="url" id="prod-image" placeholder="Image URL" class="border rounded-xl p-2.5 text-sm" />
+          <div class="md:col-span-3 lg:col-span-5 flex justify-end">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl text-sm font-semibold transition">+ Publish Product</button>
+          </div>
+        </form>
+      </div>
+      <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
+        <div class="px-6 py-3 border-b bg-slate-50 font-bold text-sm text-slate-700">Existing Inventory</div>
+        <table class="w-full text-left text-sm text-slate-600">
+          <thead class="bg-slate-100 text-xs uppercase text-slate-500 border-b">
+            <tr><th class="p-4">Item</th><th class="p-4">Category</th><th class="p-4">Price</th><th class="p-4">Stock</th><th class="p-4 text-right">Actions</th></tr>
+          </thead>
+          <tbody id="inventory-table-body" class="divide-y"></tbody>
+        </table>
+      </div>
+    </section>
+    <section id="view-dispatch" class="hidden space-y-4">
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-800">Dispatch Dashboard</h2>
+          <p class="text-xs text-slate-500">View orders and manage fulfillment.</p>
+        </div>
+        <button onclick="loadOrders()" class="text-sm font-semibold text-indigo-600 hover:underline">Refresh Orders</button>
+      </div>
+      <div id="orders-container" class="grid grid-cols-1 gap-4"></div>
+    </section>
+  </main>
+  <div id="login-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
+      <h3 class="text-lg font-bold mb-1">Admin Authentication</h3>
+      <p class="text-xs text-slate-500 mb-4">Credentials: <code class="font-bold">admin / admin123</code></p>
+      <form onsubmit="submitLogin(event)" class="space-y-3">
+        <input type="text" id="login-user" placeholder="Username" required class="w-full border rounded-xl p-2.5 text-sm" />
+        <input type="password" id="login-pass" placeholder="Password" required class="w-full border rounded-xl p-2.5 text-sm" />
+        <div id="login-error" class="text-xs text-rose-600 hidden font-medium"></div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeLoginModal()" class="w-1/2 border py-2.5 rounded-xl text-sm font-semibold">Cancel</button>
+          <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700">Login</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <div id="cart-drawer" class="fixed inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl p-6 hidden z-50 flex flex-col justify-between">
+    <div>
+      <div class="flex justify-between items-center border-b pb-3 mb-4">
+        <h3 class="text-lg font-bold">Shopping Cart</h3>
+        <button onclick="toggleCart()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+      </div>
+      <div id="cart-items" class="divide-y max-h-[60vh] overflow-y-auto"></div>
+    </div>
+    <div class="border-t pt-4">
+      <div class="flex justify-between text-lg font-bold mb-4"><span>Total:</span><span id="cart-total">$0.00</span></div>
+      <button onclick="openCheckout()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition">Proceed to Checkout</button>
+    </div>
+  </div>
+  <div id="checkout-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
+      <h3 class="text-xl font-bold mb-1">Dispatch & Delivery Address</h3>
+      <p class="text-xs text-slate-500 mb-4">Provide destination details for fulfillment.</p>
+      <form id="checkout-form" onsubmit="submitOrder(event)" class="space-y-3">
+        <input type="text" id="c-name" placeholder="Recipient Full Name" required class="w-full border rounded-xl p-2.5 text-sm" />
+        <input type="email" id="c-email" placeholder="Email Address" required class="w-full border rounded-xl p-2.5 text-sm" />
+        <input type="tel" id="c-phone" placeholder="Phone Number" required class="w-full border rounded-xl p-2.5 text-sm" />
+        <textarea id="c-address" placeholder="Delivery Street Address" required class="w-full border rounded-xl p-2.5 text-sm"></textarea>
+        <div class="grid grid-cols-2 gap-2">
+          <input type="text" id="c-city" placeholder="City" required class="border rounded-xl p-2.5 text-sm" />
+          <input type="text" id="c-zip" placeholder="Zip / Postal Code" required class="border rounded-xl p-2.5 text-sm" />
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeCheckout()" class="w-1/2 border py-2.5 rounded-xl text-sm font-semibold">Cancel</button>
+          <button type="submit" class="w-1/2 bg-indigo-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition">Confirm & Dispatch</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    let products = [];
+    let cart = [];
+    let pendingProtectedTab = null;
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem('adminToken');
+      return { 'Content-Type': 'application/json', ...(token ? { 'Authorization': `Bearer ${token}` } : {}) };
+    }
+
+    function switchTab(tab) {
+      if ((tab === 'inventory' || tab === 'dispatch') && !localStorage.getItem('adminToken')) {
+        pendingProtectedTab = tab;
+        openLoginModal();
+        return;
+      }
+      ['store', 'inventory', 'dispatch'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = 'px-4 py-1.5 rounded-lg text-slate-600 hover:text-slate-900';
+      });
+      document.getElementById(`view-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).className = 'px-4 py-1.5 rounded-lg bg-white shadow-sm text-indigo-600 font-semibold';
+      if (tab === 'store' || tab === 'inventory') loadProducts();
+      if (tab === 'dispatch') loadOrders();
+    }
+
+    function handleAuthClick() {
+      if (localStorage.getItem('adminToken')) {
+        localStorage.removeItem('adminToken');
+        updateAuthUI();
+        switchTab('store');
+      } else {
+        openLoginModal();
+      }
+    }
+
+    function updateAuthUI() {
+      const btn = document.getElementById('auth-btn');
+      if (localStorage.getItem('adminToken')) {
+        btn.innerText = 'Logout';
+        btn.className = 'text-xs font-bold border border-rose-200 text-rose-600 px-3 py-2 rounded-xl hover:bg-rose-50';
+      } else {
+        btn.innerText = 'Admin Login';
+        btn.className = 'text-xs font-bold border px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-50';
+      }
+    }
+
+    function openLoginModal() { document.getElementById('login-modal').classList.remove('hidden'); }
+    function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); }
+
+    async function submitLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('login-user').value;
+      const password = document.getElementById('login-pass').value;
+      const errBox = document.getElementById('login-error');
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.token) {
+        localStorage.setItem('adminToken', data.token);
+        closeLoginModal();
+        updateAuthUI();
+        if (pendingProtectedTab) {
+          switchTab(pendingProtectedTab);
+          pendingProtectedTab = null;
+        }
+      } else {
+        errBox.innerText = data.error || 'Login failed.';
+        errBox.classList.remove('hidden');
+      }
+    }
+
+    async function loadProducts() {
+      const res = await fetch('/api/products');
+      products = await res.json();
+      document.getElementById('product-grid').innerHTML = products.map(p => `
+        <div class="bg-white border rounded-2xl p-4 shadow-sm flex flex-col justify-between">
+          <img src="${p.image}" class="h-44 w-full object-cover rounded-xl mb-3" />
+          <div>
+            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">${p.category}</span>
+            <h4 class="font-bold text-slate-800 mt-2 text-sm">${p.name}</h4>             <div class="flex justify-between items-center mt-2">               <span class="text-lg font-black text-slate-900">$${p.price.toFixed(2)}</span>
+              <span class="text-xs ${p.stock > 0 ? 'text-emerald-600 font-semibold' : 'text-rose-500 font-semibold'}">${p.stock > 0 ? `${p.stock} left` : 'Sold out'}</span>
+            </div>
+          </div>
+          <button onclick="addToCart(${p.id})" ${p.stock <= 0 ? 'disabled' : ''} class="mt-4 w-full bg-slate-900 hover:bg-black text-white text-sm py-2.5 rounded-xl font-medium transition disabled:bg-slate-300">
+            ${p.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+          </button>
+        </div>
+      `).join('');
+
+      document.getElementById('inventory-table-body').innerHTML = products.map(p => `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-semibold text-slate-800 flex items-center gap-3"><img src="${p.image}" class="w-8 h-8 rounded-lg object-cover" />${p.name}</td>
+          <td class="p-4">${p.category}</td>           <td class="p-4 font-bold text-slate-800">$${p.price.toFixed(2)}</td>
+          <td class="p-4">${p.stock} units</td>
+          <td class="p-4 text-right"><button onclick="deleteProduct(${p.id})" class="text-rose-600 hover:underline text-xs font-bold">Delete</button></td>
+        </tr>
+      `).join('');
+    }
+
+    async function addProduct(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('prod-name').value,
+        price: document.getElementById('prod-price').value,
+        category: document.getElementById('prod-category').value,
+        stock: document.getElementById('prod-stock').value,
+        image: document.getElementById('prod-image').value
+      };
+      const res = await fetch('/api/products', {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload)
+      });
+      if (res.status === 401 || res.status === 403) return alert('Authentication required.');
+      if (res.ok) {
+        e.target.reset();
+        loadProducts();
+      }
+    }
+
+    async function deleteProduct(id) {
+      if (!confirm('Remove this product?')) return;
+      await fetch(`/api/products/${id}`, { method: 'DELETE', headers: getAuthHeaders() });
+      loadProducts();
+    }
+
+    async function loadOrders() {
+      const res = await fetch('/api/orders', { headers: getAuthHeaders() });
+      if (res.status === 401 || res.status === 403) return switchTab('store');
+      const orders = await res.json();
+      const container = document.getElementById('orders-container');
+      if (orders.length === 0) {
+        container.innerHTML = '<div class="bg-white p-8 rounded-2xl text-center text-slate-400">No orders received yet.</div>';
+        return;
+      }
+      container.innerHTML = orders.map(o => `
+        <div class="bg-white border rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex justify-between items-center border-b pb-3">
+            <div>
+              <span class="font-mono font-bold text-indigo-600">${o.orderId}</span>
+              <span class="text-xs text-slate-400 ml-2">${new Date(o.date).toLocaleString()}</span>
+            </div>
+            <select onchange="updateOrderStatus('${o.orderId}', this.value)" class="text-xs font-bold border rounded-lg px-2.5 py-1">
+              <option value="Pending Dispatch" ${o.status === 'Pending Dispatch' ? 'selected' : ''}>Pending Dispatch</option>
+              <option value="Dispatched" ${o.status === 'Dispatched' ? 'selected' : ''}>Dispatched</option>
+              <option value="Delivered" ${o.status === 'Delivered' ? 'selected' : ''}>Delivered</option>
+            </select>
+          </div>
+          <div class="text-sm grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-slate-50 p-3.5 rounded-xl">
+              <p class="text-xs uppercase font-bold text-slate-400 mb-1">Customer & Address</p>
+              <p class="font-bold text-slate-800">${o.customer.name} (${o.customer.phone})</p>
+              <p class="text-slate-500 text-xs">${o.customer.email}</p>
+              <p class="text-slate-700 mt-2 text-xs font-medium">${o.customer.address}, ${o.customer.city} (${o.customer.zip})</p>
+            </div>
+            <div class="bg-slate-50 p-3.5 rounded-xl flex flex-col justify-between">
+              <div>
+                <p class="text-xs uppercase font-bold text-slate-400 mb-1">Items in Package</p>
+                <ul class="text-slate-700 text-xs space-y-1">${o.items.map(i => `<li>• ${i.name} &times; ${i.quantity}</li>`).join('')}</ul>
+              </div>
+              <p class="font-bold text-slate-900 border-t pt-2 mt-2">Total: $${o.total.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function updateOrderStatus(id, status) {
+      await fetch(`/api/orders/${id}/status`, {
+        method: 'PATCH',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({ status })
+      });
+      loadOrders();
+    }
+
+    function addToCart(id) {
+      const prod = products.find(p => p.id === id);
+      const inCart = cart.find(item => item.id === id);
+      if (inCart) {
+        if (inCart.quantity < prod.stock) inCart.quantity++;
+      } else {
+        cart.push({ ...prod, quantity: 1 });
+      }
+      renderCart();
+    }
+
+    function renderCart() {
+      document.getElementById('cart-count').innerText = cart.reduce((a, b) => a + b.quantity, 0);
+      document.getElementById('cart-items').innerHTML = cart.map(item => `
+        <div class="py-3 flex justify-between items-center text-sm">
+          <div><p class="font-bold text-slate-800">${item.name}</p><p class="text-xs text-slate-500">${item.quantity} &times; $${item.price.toFixed(2)}</p></div>           <span class="font-bold text-slate-900">$${(item.quantity * item.price).toFixed(2)}</span>
+        </div>
+      `).join('');
+      document.getElementById('cart-total').innerText = `$${cart.reduce((a, b) => a + (b.price * b.quantity), 0).toFixed(2)}`;
+    }
+
+    function toggleCart() { document.getElementById('cart-drawer').classList.toggle('hidden'); }
+    function openCheckout() { if (cart.length > 0) document.getElementById('checkout-modal').classList.remove('hidden'); }
+    function closeCheckout() { document.getElementById('checkout-modal').classList.add('hidden'); }
+
+    async function submitOrder(e) {
+      e.preventDefault();
+      const customer = {
+        name: document.getElementById('c-name').value,
+        email: document.getElementById('c-email').value,
+        phone: document.getElementById('c-phone').value,
+        address: document.getElementById('c-address').value,
+        city: document.getElementById('c-city').value,
+        zip: document.getElementById('c-zip').value
+      };
+      const total = cart.reduce((a, b) => a + (b.price * b.quantity), 0).toFixed(2);
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer, items: cart, total })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Order Placed Successfully! Your Order ID: ${data.orderId}`);
+        cart = [];
+        renderCart();
+        closeCheckout();
+        toggleCart();
+        loadProducts();
+      }
+    }
+
+    updateAuthUI();
+    loadProducts();
+  </script>
+</body>
+</html>

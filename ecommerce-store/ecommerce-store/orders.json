@@ -1,0 +1,27 @@
+[
+  {
+    "orderId": "ORD-672866",
+    "date": "2026-08-18T06:14:32.866Z",
+    "customer": {
+      "name": "MURSELIN KHAN",
+      "email": "Murselin.khan.320@gmail.com",
+      "phone": "08250628028",
+      "address": "20th main road,Raghavendra layout,garvebhavi palya, karnataka,560068\nmico layout",
+      "city": "Bangalore",
+      "zip": "560068"
+    },
+    "items": [
+      {
+        "id": 1,
+        "name": "Minimalist Leather Backpack",
+        "price": 79.99,
+        "category": "Accessories",
+        "stock": 12,
+        "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500",
+        "quantity": 1
+      }
+    ],
+    "total": 79.99,
+    "status": "Pending Dispatch"
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "code": "WELCOME10",
+    "discountPercent": 10,
+    "minSpend": 20,
+    "active": true
+  },
+  {
+    "code": "FLAT25",
+    "discountPercent": 25,
+    "minSpend": 100,
+    "active": true
+  }
+]

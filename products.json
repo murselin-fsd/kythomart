@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1787048683484,
+    "name": "Crocs Bayband White Clog",
+    "price": 2800,
+    "category": "Clogs",
+    "stock": 28,
+    "sizes": "UK7,UK8,UK,9,UK10",
+    "colors": "Default",
+    "image": "https://assets.jdwebnship.in/products/images/1785584398_kQZyOy.webp"
+  },
+  {
+    "id": 1,
+    "name": "Minimalist Leather Backpack",
+    "price": 1899,
+    "category": "Accessories",
+    "stock": 13,
+    "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500"
+  },
+  {
+    "id": 2,
+    "name": "Wireless Studio Headphones",
+    "price": 2999,
+    "category": "Electronics",
+    "stock": 10,
+    "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500"
+  },
+  {
+    "id": 3,
+    "name": "Insulated Stainless Bottle",
+    "price": 649,
+    "category": "Lifestyle",
+    "stock": 25,
+    "image": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500"
+  },
+  {
+    "id": 4,
+    "name": "RGB Mechanical Keyboard",
+    "price": 3499,
+    "category": "Electronics",
+    "stock": 8,
+    "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500"
+  }
+]

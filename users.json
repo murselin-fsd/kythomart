@@ -20,5 +20,10 @@
     "city": "Bangalore",
     "zip": "560068",
     "wishlist": []
+  },
+  {
+    "email": "Murselin.khan.320@gmail.com",
+    "password": "$2b$10$PhhtY01osy5WA/HNWEwsDOqqBqWaNBMhBFuC6N.I0tNHlzDG4COc.",
+    "name": "MURSELIN KHAN"
   }
 ]

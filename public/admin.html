@@ -232,17 +232,22 @@
       const err = document.getElementById('admin-login-error');
       err.classList.add('hidden');
 
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        localStorage.setItem('isAdminLoggedIn', 'true');
-        checkAdminAuth();
-      } else {
-        err.innerText = data.error || 'Invalid credentials.';
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          localStorage.setItem('isAdminLoggedIn', 'true');
+          checkAdminAuth();
+        } else {
+          err.innerText = data.error || 'Invalid credentials.';
+          err.classList.remove('hidden');
+        }
+      } catch (e) {
+        err.innerText = 'Network connection failed.';
         err.classList.remove('hidden');
       }
     }
@@ -302,7 +307,6 @@
       const newPassword = document.getElementById('sec-new-pass').value.trim();
       const msg = document.getElementById('settings-alert-box');
       msg.classList.add('hidden');
-
       const res = await fetch('/api/admin/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -326,14 +330,11 @@
       const aRes = await fetch('/api/admin/analytics');
       const a = await aRes.json();
       const sym = storeSettings.currency || '₹';
-
       document.getElementById('stat-revenue').innerText = `${sym}${a.totalRevenue}`;
       document.getElementById('stat-profit').innerText = `${sym}${a.estimatedProfit}`;
       document.getElementById('stat-pending').innerText = a.pendingOrders;
       document.getElementById('stat-units').innerText = a.totalUnitsSold;
-
       renderRevenueChart(a.chartData, sym);
-
       const lowBanner = document.getElementById('low-stock-banner');
       if (a.lowStockCount > 0) {
         document.getElementById('low-stock-text').innerText = `Warning: ${a.lowStockCount} product(s) are running low on stock (< 5 units).`;
@@ -341,27 +342,22 @@
       } else {
         lowBanner.classList.add('hidden');
       }
-
       const query = (document.getElementById('order-search').value || '').toLowerCase().trim();
       const statusFilter = document.getElementById('order-status-filter').value;
-
       let filtered = orders.filter(o => {
         const matchQ = o.orderId.toLowerCase().includes(query) || o.customer.name.toLowerCase().includes(query) || o.customer.phone.includes(query);
         const matchS = statusFilter === 'all' || o.status === statusFilter;
         return matchQ && matchS;
       });
-
       const container = document.getElementById('admin-orders-container');
       if (filtered.length === 0) {
         container.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">No orders match your search criteria.</p>';
         return;
       }
-
       container.innerHTML = filtered.map(o => {
         const waDispatched = `https://wa.me/917899985086?text=${encodeURIComponent(`Hi ${o.customer.name}, great news! Your order *${o.orderId}* has been *Dispatched* from ${storeSettings.storeName}.`)}`;
         const waDelivery = `https://wa.me/917899985086?text=${encodeURIComponent(`Hi ${o.customer.name}, your order *${o.orderId}* is *Out for Delivery* today from ${storeSettings.storeName}.`)}`;
         const waDelivered = `https://wa.me/917899985086?text=${encodeURIComponent(`Hi ${o.customer.name}, your order *${o.orderId}* has been successfully *Delivered*! Thank you for shopping with ${storeSettings.storeName}.`)}`;
-
         return `
         <div class="bg-white border rounded-2xl p-4 shadow-sm space-y-3 text-xs">
           <div class="flex justify-between items-center border-b pb-2">
@@ -399,10 +395,8 @@
     function renderRevenueChart(chartData, sym) {
       const ctx = document.getElementById('revenueChart').getContext('2d');
       if (revenueChartInstance) revenueChartInstance.destroy();
-
       const labels = chartData.dates.length ? chartData.dates : [new Date().toISOString().split('T')[0]];
       const totals = chartData.totals.length ? chartData.totals : [0];
-
       revenueChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -472,6 +466,21 @@
         });
     }
 
+    // --- Out of Stock Toggle Function ---
+    async function toggleOutOfStock(id, currentStock) {
+      const newStock = (currentStock > 0) ? 0 : 10;
+      const res = await fetch(`/api/admin/products/${id}/stock`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ stock: newStock })
+      });
+      if (res.ok) {
+        renderInventoryTable();
+      } else {
+        alert('Failed to update stock status.');
+      }
+    }
+
     async function renderInventoryTable() {
       const res = await fetch('/api/products');
       products = await res.json();
@@ -480,6 +489,7 @@
         const cost = p.costPrice || 0;
         const profit = p.price - cost;
         const margin = p.price > 0 ? ((profit / p.price) * 100).toFixed(1) : 0;
+        const isOut = (p.stock || 0) <= 0;
         return `
         <tr class="hover:bg-slate-50">
           <td class="p-4 font-semibold text-slate-800 flex items-center gap-3"><img src="${p.image}" class="w-8 h-8 rounded-lg object-cover" />${p.name}</td>
@@ -491,11 +501,16 @@
             </span>
           </td>
           <td class="p-4">
-            <span class="px-2.5 py-1 rounded-md text-xs font-bold ${p.stock <= 4 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
-              ${p.stock} units ${p.stock <= 4 ? '⚠️ Low' : ''}
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold ${isOut ? 'bg-rose-100 text-rose-800' : p.stock <= 4 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+              ${isOut ? '🔴 Out of Stock' : `${p.stock} units ${p.stock <= 4 ? '⚠️ Low' : ''}`}
             </span>
           </td>
-          <td class="p-4 text-right"><button type="button" onclick="deleteProduct(${p.id})" class="text-rose-600 hover:underline text-xs font-bold">Delete</button></td>
+          <td class="p-4 text-right flex items-center justify-end gap-2">
+            <button type="button" onclick="toggleOutOfStock(${p.id}, ${p.stock || 0})" class="text-xs font-bold px-2.5 py-1 rounded-lg ${!isOut ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}">
+              ${!isOut ? 'Mark Out of Stock' : 'Restock (10)'}
+            </button>
+            <button type="button" onclick="deleteProduct(${p.id})" class="text-rose-600 hover:underline text-xs font-bold">Delete</button>
+          </td>
         </tr>
       `;
       }).join('');

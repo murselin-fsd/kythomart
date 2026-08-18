@@ -323,7 +323,7 @@
         <span id="cart-grand-total">₹0.00</span>
       </div>
       <!-- Guaranteed Direct Checkout Handler -->
-      <button type="button" onclick="openCheckoutModal()" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-2xl font-bold text-sm shadow-md transition cursor-pointer relative z-50">
+      <button type="button" onclick="document.getElementById('modal-checkout').classList.remove('hidden'); document.getElementById('cart-drawer').classList.add('hidden');" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-2xl font-bold text-sm shadow-md transition cursor-pointer relative z-50">
         Proceed to Checkout ➔
       </button>
     </div>

@@ -467,3 +467,31 @@ app.listen(PORT, () => {
   console.log(`🔑 Merchant Admin:  http://localhost:${PORT}/admin`);
   console.log(`=================================================`);
 });
+
+
+// Razorpay Integration
+const Razorpay = require('razorpay');
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_dummy',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || 'dummy'
+});
+
+app.get('/api/razorpay-key', (req, res) => {
+  res.json({ keyId: process.env.RAZORPAY_KEY_ID || 'rzp_test_dummy' });
+});
+
+app.post('/api/create-razorpay-order', async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const options = {
+      amount: Math.round(amount * 100),
+      currency: "INR",
+      receipt: "receipt_" + Date.now()
+    };
+    const order = await razorpay.orders.create(options);
+    res.json(order);
+  } catch (error) {
+    console.error("Razorpay Error:", error);
+    res.status(500).json({ error: "Failed to create order" });
+  }
+});

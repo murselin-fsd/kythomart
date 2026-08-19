@@ -1,3 +1,57 @@
+
+// In-memory store for tracking failed login attempts (can be replaced with Redis/DB in production)
+const failedLogins = new Map(); // Format: email -> { count, lockUntil }
+
+function checkAccountLockout(email) {
+  const record = failedLogins.get(email);
+  if (!record) return { locked: false };
+
+  if (record.lockUntil && Date.now() < record.lockUntil) {
+    const remainingMins = Math.ceil((record.lockUntil - Date.now()) / 60000);
+    return { locked: true, remainingMins };
+  }
+
+  // If lockout time has passed, reset
+  if (record.lockUntil && Date.now() >= record.lockUntil) {
+    failedLogins.delete(email);
+  }
+
+  return { locked: false };
+}
+
+function recordFailedLogin(email) {
+  const record = failedLogins.get(email) || { count: 0, lockUntil: null };
+  record.count += 1;
+
+  // Lock account for 15 minutes after 5 failed attempts
+  if (record.count >= 5) {
+    record.lockUntil = Date.now() + 15 * 60 * 1000;
+  }
+  failedLogins.set(email, record);
+}
+
+function resetFailedLogin(email) {
+  failedLogins.delete(email);
+}
+
+const { body, validationResult } = require("express-validator");
+
+// Validation rules for registration
+const validateRegister = [
+  body("email").isEmail().normalizeEmail().withMessage("Invalid email address"),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long")
+    .matches(/\d/)
+    .withMessage("Password must contain a number"),
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+    next();
+  }
+];
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const cookieParser = require("cookie-parser");
@@ -571,5 +625,43 @@ app.post("/api/payment/verify", (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+const REFRESH_SECRET = process.env.REFRESH_SECRET || "refresh_super_secret_key_change_in_prod";
+
+// Generate dual tokens on login/register
+function generateTokens(userPayload) {
+  const accessToken = jwt.sign(userPayload, JWT_SECRET, { expiresIn: "15m" });
+  const refreshToken = jwt.sign(userPayload, REFRESH_SECRET, { expiresIn: "7d" });
+  return { accessToken, refreshToken };
+}
+
+// Refresh Token Endpoint
+app.post("/api/user/refresh-token", (req, res) => {
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json({ error: "Refresh token missing. Please sign in." });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, REFRESH_SECRET);
+    const userPayload = { id: decoded.id, email: decoded.email };
+    
+    // Issue new Access Token
+    const newAccessToken = jwt.sign(userPayload, JWT_SECRET, { expiresIn: "15m" });
+    
+    res.cookie("authToken", newAccessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000 // 15 mins
+    });
+
+    res.json({ success: true, message: "Token refreshed successfully" });
+  } catch (err) {
+    res.clearCookie("authToken");
+    res.clearCookie("refreshToken");
+    return res.status(403).json({ error: "Invalid refresh token. Please sign in again." });
   }
 });

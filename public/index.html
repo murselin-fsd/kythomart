@@ -1942,5 +1942,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   </script>
 
+
+  
+
+
+  <script id="secure-cart-auth">
+    // Wait for the DOM and scripts to load, then wrap addToCartCustom
+    window.addEventListener("DOMContentLoaded", () => {
+      if (typeof window.addToCartCustom === 'function' && !window._originalAddToCartCustom) {
+        window._originalAddToCartCustom = window.addToCartCustom;
+        
+        window.addToCartCustom = function(prod, selectedSize) {
+          // Check if user is logged in
+          const isLoggedIn = window.currentUser || localStorage.getItem("kytho_logged_in") === "true";
+
+          if (!isLoggedIn) {
+            if (typeof showToast === "function") {
+              showToast("🔒 Please sign in to your account first to add items to your cart.", "error");
+            } else {
+              alert("Please sign in to your account first to add items to your cart.");
+            }
+
+            // Open profile or trigger sign in
+            if (typeof handleUserHeaderClick === "function") {
+              handleUserHeaderClick();
+            } else if (typeof switchView === "function") {
+              switchView("profile");
+            }
+            return;
+          }
+
+          // If logged in, proceed
+          window._originalAddToCartCustom(prod, selectedSize);
+        };
+      }
+    });
+  </script>
+
 </body>
 </html>

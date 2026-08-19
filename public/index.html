@@ -1655,5 +1655,181 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+
+  
+
+
+  
+
+
+  <script id="cart-drag-fix">
+    document.addEventListener("DOMContentLoaded", () => {
+      function getCartDrawer() {
+        return document.getElementById("cart-modal") || 
+               document.getElementById("cart-drawer") || 
+               document.querySelector(".cart-drawer") || 
+               document.querySelector(".cart-modal");
+      }
+
+      const cart = getCartDrawer();
+      if (cart && !document.getElementById("cart-custom-close-btn")) {
+        const titleEl = cart.querySelector("h2") || cart.querySelector(".text-xl") || cart.firstChild;
+        if (titleEl) {
+          const closeHeader = document.createElement("div");
+          closeHeader.id = "cart-custom-close-btn";
+          closeHeader.className = "flex items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-slate-800 pr-12"; // Added right padding so it avoids the 3-dot button
+          closeHeader.innerHTML = `
+            <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Cart Drawer</span>
+            <button type="button" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1">
+              ✕ Close Cart
+            </button>
+          `;
+          
+          closeHeader.querySelector("button").onclick = () => {
+            cart.classList.add("hidden");
+            cart.style.display = "none";
+            const backdrop = document.getElementById("cart-backdrop");
+            if (backdrop) {
+              backdrop.classList.add("hidden");
+              backdrop.style.display = "none";
+            }
+          };
+
+          titleEl.parentNode.insertBefore(closeHeader, titleEl);
+        }
+      }
+
+      // Automatically hide/show the top-right 3-dot button when cart opens/closes to prevent clashing
+      const observer = new MutationObserver(() => {
+        const c = getCartDrawer();
+        const threeDotBtn = document.querySelector(".fixed.top-4.right-4");
+        if (c && threeDotBtn) {
+          const isOpen = !c.classList.contains("hidden") && c.style.display !== "none";
+          threeDotBtn.style.opacity = isOpen ? "0" : "1";
+          threeDotBtn.style.pointerEvents = isOpen ? "none" : "auto";
+        }
+      });
+
+      if (cart) {
+        observer.observe(cart, { attributes: true, attributeFilter: ["class", "style"] });
+      }
+    });
+  </script>
+
+
+  <!-- Contact Us Section Injection -->
+  
+  </div>
+
+
+  
+
+
+  
+
+
+  <!-- Professional E-Commerce Footer Console -->
+  <footer class="bg-slate-900 text-slate-300 text-xs mt-16 pt-12 pb-8 border-t border-slate-800">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-8 pb-12 border-b border-slate-800">
+      
+      <!-- ABOUT -->
+      <div>
+        <p class="font-bold text-slate-400 uppercase tracking-widest text-[11px] mb-4">About</p>
+        <ul class="space-y-2.5 font-medium">
+          <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">KythoStories</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Corporate Information</a></li>
+        </ul>
+      </div>
+
+      <!-- HELP -->
+      <div>
+        <p class="font-bold text-slate-400 uppercase tracking-widest text-[11px] mb-4">Help</p>
+        <ul class="space-y-2.5 font-medium">
+          <li><a href="#" class="hover:text-white transition-colors">Payments</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Shipping</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Cancellation & Returns</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">FAQ</a></li>
+        </ul>
+      </div>
+
+      <!-- CONSUMER POLICY -->
+      <div>
+        <p class="font-bold text-slate-400 uppercase tracking-widest text-[11px] mb-4">Consumer Policy</p>
+        <ul class="space-y-2.5 font-medium">
+          <li><a href="#" class="hover:text-white transition-colors">Cancellation & Returns</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Terms Of Use</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Security</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Privacy</a></li>
+          <li><a href="#" class="hover:text-white transition-colors">Sitemap</a></li>
+        </ul>
+      </div>
+
+      <!-- Mail Us -->
+      <div>
+        <p class="font-bold text-slate-400 uppercase tracking-widest text-[11px] mb-4">Mail Us:</p>
+        <p class="leading-relaxed text-slate-400">
+          KythoMart Internet Private Limited,<br>
+          BTM Layout,<br>
+          Bangalore 560068,<br>
+          Karnataka, India<br>
+          <span class="block mt-2 font-semibold text-amber-400">Email: kythomart@hotmail.com</span>
+        </p>
+      </div>
+
+      <!-- Registered Office Address & Social Media -->
+      <div>
+        <p class="font-bold text-slate-400 uppercase tracking-widest text-[11px] mb-4">Registered Office & Social:</p>
+        <p class="leading-relaxed text-slate-400 mb-4">
+          KythoMart Internet Private Limited,<br>
+          BTM Layout, Bangalore 560068<br>
+          CIN : U51109KA2012PTC066107<br>
+          Phone: <a href="tel:+917899985086" class="text-amber-400 hover:underline">+91 7899985086</a>
+        </p>
+        
+        <!-- Social Media Links -->
+        <div class="flex items-center gap-3">
+          <a href="https://instagram.com/Kythomart" target="_blank" title="Instagram: Kythomart" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-amber-500 hover:text-slate-900 text-slate-300 flex items-center justify-center transition-all shadow-sm">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+          <a href="https://facebook.com/kythomart" target="_blank" title="Facebook: kythomart" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-amber-500 hover:text-slate-900 text-slate-300 flex items-center justify-center transition-all shadow-sm">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8H6v4h3v12h5V12h3.642L18 8h-4V6.333C14 5.37 14.5 5 15.5 5H18V0h-3.808C10.5 0 9 1.5 9 4.615V8z"/></svg>
+          </a>
+          <a href="https://twitter.com/kythomart" target="_blank" title="Twitter: kythomart" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-amber-500 hover:text-slate-900 text-slate-300 flex items-center justify-center transition-all shadow-sm">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Bar with Premium SVG Icons -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 flex flex-col md:flex-row items-center justify-between text-slate-400 text-[11px] font-medium gap-4">
+      <div class="flex items-center gap-6">
+        <a href="#" class="flex items-center gap-2 hover:text-white transition-colors">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+          Become a Seller
+        </a>
+        <a href="#" class="flex items-center gap-2 hover:text-white transition-colors">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/></svg>
+          Advertise
+        </a>
+        <a href="#" class="flex items-center gap-2 hover:text-white transition-colors">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+          Gift Cards
+        </a>
+        <a href="#" class="flex items-center gap-2 hover:text-white transition-colors">
+          <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Help Center
+        </a>
+      </div>
+      <div>
+        © 2007-2026 KythoMart.com
+      </div>
+    </div>
+  </footer>
+
 </body>
 </html>

@@ -1831,5 +1831,73 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
   </footer>
 
+
+  
+
+  
+
+
+  
+
+  
+
+
+  <style id="custom-page-animations">
+    @keyframes floatSoft {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+      50% { box-shadow: 0 0 20px 4px rgba(245, 158, 11, 0.2); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .animate-float {
+      animation: floatSoft 4s ease-in-out infinite;
+    }
+
+    .animate-pulse-glow {
+      animation: pulseGlow 3s ease-in-out infinite;
+    }
+
+    /* Premium card hover elevation and smooth scale */
+    .product-card, .profile-card, div[class*="rounded-3xl"] {
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .product-card:hover, .profile-card:hover {
+      transform: translateY(-4px) scale(1.01);
+      box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.12);
+    }
+
+    /* Interactive button press depth */
+    button:active, a:active {
+      transform: scale(0.96) !important;
+    }
+  </style>
+
+  <script id="apply-animations-script">
+    document.addEventListener("DOMContentLoaded", () => {
+      // Add subtle stagger entrance to product cards and sections
+      const cards = document.querySelectorAll(".product-card, .grid > div");
+      cards.forEach((card, index) => {
+        card.style.opacity = "0";
+        card.style.transform = "translateY(20px)";
+        card.style.transition = `opacity 0.5s ease ${index * 0.05}s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) ${index * 0.05}s`;
+        
+        setTimeout(() => {
+          card.style.opacity = "1";
+          card.style.transform = "translateY(0)";
+        }, 50);
+      });
+    });
+  </script>
+
 </body>
 </html>

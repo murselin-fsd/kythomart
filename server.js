@@ -510,3 +510,20 @@ app.post('/api/create-razorpay-order', async (req, res) => {
     res.status(500).json({ error: "Failed to create order" });
   }
 });
+
+  app.post("/api/orders/status", (req, res) => {
+    try {
+      const { orderId, status } = req.body;
+      if (!global.ordersStore) global.ordersStore = [];
+      let order = global.ordersStore.find(o => o.id === orderId);
+      if (order) {
+        order.status = status;
+        return res.json({ success: true, status });
+      }
+      global.ordersStore.unshift({ id: orderId, status: status, date: "Today", total: "0.00", items: "Item" });
+      return res.json({ success: true, status });
+    } catch (e) {
+      res.status(500).json({ error: "Error" });
+    }
+  });
+  

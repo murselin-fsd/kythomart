@@ -618,5 +618,47 @@
 
     checkAdminAuth();
   </script>
+
+  <script>
+    document.addEventListener("change", async (e) => {
+      if (e.target && e.target.tagName === "SELECT") {
+        const select = e.target;
+        const status = select.value;
+        const row = select.closest("div, tr");
+        if (!row) return;
+        const match = row.innerText.match(/ORD-[0-9]+/);
+        if (!match) return;
+        const orderId = match[0];
+
+        try {
+          await fetch("/api/orders/status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ orderId, status })
+          });
+        } catch (err) {
+          console.error("Sync error", err);
+        }
+      }
+    });
+
+    window.addEventListener("DOMContentLoaded", () => {
+      setInterval(() => {
+        document.querySelectorAll("select").forEach(sel => {
+          let hasCancel = false;
+          for (let i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].text.toLowerCase().includes("cancel")) hasCancel = true;
+          }
+          if (!hasCancel) {
+            const opt = document.createElement("option");
+            opt.value = "Cancelled";
+            opt.text = "Cancelled";
+            sel.appendChild(opt);
+          }
+        });
+      }, 2000);
+    });
+  </script>
+  
 </body>
 </html>

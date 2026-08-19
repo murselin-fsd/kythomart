@@ -1,5 +1,70 @@
 [
   {
+    "orderId": "ORD-436691",
+    "date": "2026-08-19T13:29:29.702Z",
+    "customer": {
+      "name": "vill-gobra, post-jamitya, city- tamluk, 721134",
+      "email": "Murselin.khan.320@gmail.com",
+      "phone": "08250628028",
+      "address": "vill-gobra, post-jamitya, city- tamluk, 721134\ngobra furniture factory",
+      "city": "PASKURA",
+      "zip": "721134"
+    },
+    "items": [
+      {
+        "id": 4,
+        "name": "RGB Mechanical Keyboard",
+        "price": 3499,
+        "category": "Electronics",
+        "stock": 8,
+        "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500",
+        "quantity": 1,
+        "selectedSize": "Standard"
+      }
+    ],
+    "total": 3499,
+    "paymentMethod": "Cash on Delivery (COD)",
+    "paymentStatus": "Pending (Cash on Delivery)",
+    "status": "Cancelled",
+    "giftNote": ""
+  },
+  {
+    "orderId": "ORD-526840",
+    "date": "2026-08-19T13:19:50.792Z",
+    "customer": {
+      "name": "20th main road,Raghavendra layout,garvebhavi palya, karnataka,560068",
+      "email": "Murselin.khan.320@gmail.com",
+      "phone": "08250628028",
+      "address": "20th main road,Raghavendra layout,garvebhavi palya, karnataka,560068\nmico layout",
+      "city": "Bangalore",
+      "zip": "560068"
+    },
+    "items": [
+      {
+        "id": 1787137861216,
+        "name": "apple iwatch series 6  Red",
+        "price": 27000,
+        "costPrice": 22000,
+        "category": "General",
+        "stock": 24,
+        "sizes": "Standard",
+        "description": "High quality product.",
+        "images": [
+          "/uploads/1787137861186-ios-m00a3hn-a-apple-original-imafvvgfmagzv3gg.webp",
+          "/uploads/1787137861186-ios-m00a3hn-a-apple-original-imafvvgfmagzv3gg.webp"
+        ],
+        "image": "/uploads/1787137861186-ios-m00a3hn-a-apple-original-imafvvgfmagzv3gg.webp",
+        "quantity": 1,
+        "selectedSize": "Standard"
+      }
+    ],
+    "total": 27000,
+    "paymentMethod": "UPI / QR Code",
+    "paymentStatus": "Paid (Verified Online)",
+    "status": "Delivered",
+    "giftNote": ""
+  },
+  {
     "orderId": "ORD-159564",
     "date": "2026-08-19T09:53:39.891Z",
     "customer": {
@@ -25,7 +90,7 @@
     "total": 649,
     "paymentMethod": "UPI / QR Code",
     "paymentStatus": "Paid (Verified Online)",
-    "status": "Pending Dispatch",
+    "status": "Delivered",
     "giftNote": ""
   },
   {
@@ -56,7 +121,7 @@
     "total": 2800,
     "paymentMethod": "UPI / QR Code",
     "paymentStatus": "Paid (Verified Online)",
-    "status": "Pending Dispatch",
+    "status": "Delivered",
     "giftNote": ""
   },
   {
@@ -87,7 +152,7 @@
     "total": 2800,
     "paymentMethod": "UPI / QR Code",
     "paymentStatus": "Paid (Verified Online)",
-    "status": "Pending Dispatch",
+    "status": "Delivered",
     "giftNote": ""
   },
   {
@@ -118,7 +183,7 @@
     "total": 2800,
     "paymentMethod": "UPI / QR Code",
     "paymentStatus": "Paid (Verified Online)",
-    "status": "Pending Dispatch",
+    "status": "Delivered",
     "giftNote": ""
   },
   {
@@ -149,7 +214,7 @@
     "total": 2800,
     "paymentMethod": "UPI / QR Code",
     "paymentStatus": "Paid (Verified Online)",
-    "status": "Pending Dispatch",
+    "status": "Delivered",
     "giftNote": ""
   },
   {
@@ -180,7 +245,7 @@
     "total": 2800,
     "paymentMethod": "UPI / QR Code",
     "paymentStatus": "Paid (Verified Online)",
-    "status": "Pending Dispatch",
+    "status": "Delivered",
     "giftNote": ""
   },
   {
@@ -211,7 +276,7 @@
     "total": 2800,
     "paymentMethod": "UPI / QR Code",
     "paymentStatus": "Paid (Verified Online)",
-    "status": "Pending Dispatch",
+    "status": "Delivered",
     "giftNote": ""
   },
   {

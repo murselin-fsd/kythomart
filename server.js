@@ -1,3 +1,6 @@
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const cookieParser = require("cookie-parser");
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
@@ -25,6 +28,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
@@ -527,3 +531,45 @@ app.post('/api/create-razorpay-order', async (req, res) => {
     }
   });
   
+// Razorpay Instance (Replace with your Test/Live keys)
+const razorpayInstance = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_mockKeyId123",
+  key_secret: process.env.RAZORPAY_KEY_SECRET || "mockSecret123",
+});
+
+// Create Order API
+app.post("/api/payment/create-order", async (req, res) => {
+  try {
+    const { amount } = req.body;
+    const options = {
+      amount: Math.round((amount || 100) * 100), // convert to paise
+      currency: "INR",
+      receipt: "receipt_" + Date.now(),
+    };
+    const order = await razorpayInstance.orders.create(options);
+    res.json(order);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Verify Payment API
+app.post("/api/payment/verify", (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const secret = process.env.RAZORPAY_KEY_SECRET || "mockSecret123";
+
+    const generated_signature = crypto
+      .createHmac("sha256", secret)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest("hex");
+
+    if (generated_signature === razorpay_signature) {
+      res.json({ status: "success", message: "Payment verified successfully" });
+    } else {
+      res.status(400).json({ status: "failed", message: "Invalid signature verification" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});

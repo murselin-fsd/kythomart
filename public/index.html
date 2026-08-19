@@ -94,7 +94,7 @@
 
       <nav class="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl gap-1 text-xs md:text-sm font-medium">
         <button type="button" onclick="switchView('store')" id="nav-store" class="px-4 py-1.5 rounded-lg bg-white dark:bg-slate-700 shadow-sm text-amber-600 dark:text-amber-400 font-semibold">Storefront</button>
-        <button type="button" onclick="switchView('tracking')" id="nav-tracking" class="px-4 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">Track Order 📦</button>
+        
         <button type="button" onclick="switchView('profile')" id="nav-profile" class="px-4 py-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hidden">My Account 👤</button>
       </nav>
 
@@ -1920,17 +1920,25 @@ document.addEventListener('DOMContentLoaded', () => {
         list.style.display = "none";
       });
 
+      
       window.openTab = function(tabName) {
         list.style.display = "none";
-        if (typeof switchView === "function") {
-          switchView("profile");
-        }
-        setTimeout(() => {
-          if (typeof switchProfileTab === "function") {
-            switchProfileTab(tabName);
+        if (tabName === "tracking") {
+          if (typeof switchView === "function") {
+            switchView("tracking");
           }
-        }, 50);
+        } else {
+          if (typeof switchView === "function") {
+            switchView("profile");
+          }
+          setTimeout(() => {
+            if (typeof switchProfileTab === "function") {
+              switchProfileTab(tabName);
+            }
+          }, 50);
+        }
       };
+  
     });
   </script>
 

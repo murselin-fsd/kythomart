@@ -1,0 +1,85 @@
+<div class="max-w-4xl mx-auto my-10 p-8 bg-white shadow-2xl rounded-2xl border border-gray-100 font-sans">
+  <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+    <div>
+      <h2 class="text-2xl font-extrabold text-gray-900 tracking-tight">✈️ Flight Booking Center</h2>
+      <p class="text-sm text-gray-500 mt-1">Search real-time routes, schedules, and live pricing instantly.</p>
+    </div>
+    <span class="px-3 py-1 bg-blue-50 text-blue-600 text-xs font-semibold rounded-full uppercase tracking-wider">Live API</span>
+  </div>
+
+  <form id="flight-search-form" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+    <div>
+      <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">From</label>
+      <input type="text" id="origin" placeholder="e.g., DEL" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all" />
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">To</label>
+      <input type="text" id="destination" placeholder="e.g., BOM" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all" />
+    </div>
+    <div>
+      <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Departure Date</label>
+      <input type="date" id="date" required class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:bg-white transition-all" />
+    </div>
+    <div>
+      <button type="submit" class="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl shadow-lg shadow-blue-200 transition-all text-sm flex items-center justify-center space-x-2">
+        <span>Search Flights</span>
+      </button>
+    </div>
+  </form>
+
+  <div id="flight-results" class="mt-8 space-y-4"></div>
+</div>
+
+<script>
+  document.getElementById('flight-search-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const origin = document.getElementById('origin').value.toUpperCase();
+    const destination = document.getElementById('destination').value.toUpperCase();
+    const date = document.getElementById('date').value;
+    const adults = "1";
+
+    const resultsDiv = document.getElementById('flight-results');
+    resultsDiv.innerHTML = `<div class="text-center py-8 text-gray-500 animate-pulse">Searching available flights...</div>`;
+
+    try {
+      const url = `/api/flights/search?origin=${origin}&destination=${destination}&date=${date}&adults=${adults}`;
+      console.log("Fetching from:", url);
+      
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      console.log("Response data:", data);
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to fetch");
+      }
+      
+      if (!data || data.length === 0) {
+        resultsDiv.innerHTML = `<div class="p-4 bg-yellow-50 text-yellow-700 rounded-xl text-center text-sm">No flights found for this route and date.</div>`;
+        return;
+      }
+
+      let html = `<h3 class="text-lg font-bold text-gray-800 mb-4">Available Results</h3><div class="grid grid-cols-1 gap-4">`;
+      data.slice(0, 5).forEach(flight => {
+        const price = flight.price.total + " " + flight.price.currency;
+        html += `
+          <div class="p-5 bg-gradient-to-r from-gray-50 to-white border border-gray-200 rounded-2xl flex items-center justify-between hover:shadow-md transition-all">
+            <div>
+              <div class="text-sm font-bold text-gray-900">${origin} ➔ ${destination}</div>
+              <div class="text-xs text-gray-500 mt-0.5">Departure: ${date}</div>
+            </div>
+            <div class="text-right">
+              <div class="text-lg font-black text-blue-600">${price}</div>
+              <button onclick="alert('Proceeding to checkout for ${price}')" class="mt-1 px-4 py-1.5 bg-gray-900 hover:bg-black text-white text-xs font-semibold rounded-lg transition-all">Book Now</button>
+            </div>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      resultsDiv.innerHTML = html;
+    } catch (err) {
+      console.error("Search error caught:", err);
+      resultsDiv.innerHTML = `<div class="p-4 bg-red-50 text-red-600 rounded-xl text-center text-sm">Error: ${err.message}</div>`;
+    }
+  });
+</script>

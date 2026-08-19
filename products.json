@@ -1,5 +1,20 @@
 [
   {
+    "id": 1787137861216,
+    "name": "apple iwatch series 6  Red",
+    "price": 27000,
+    "costPrice": 22000,
+    "category": "General",
+    "stock": 23,
+    "sizes": "Standard",
+    "description": "High quality product.",
+    "images": [
+      "/uploads/1787137861186-ios-m00a3hn-a-apple-original-imafvvgfmagzv3gg.webp",
+      "/uploads/1787137861186-ios-m00a3hn-a-apple-original-imafvvgfmagzv3gg.webp"
+    ],
+    "image": "/uploads/1787137861186-ios-m00a3hn-a-apple-original-imafvvgfmagzv3gg.webp"
+  },
+  {
     "id": 1787048683484,
     "name": "Crocs Bayband White Clog",
     "price": 2800,
@@ -30,7 +45,7 @@
     "name": "Insulated Stainless Bottle",
     "price": 649,
     "category": "Lifestyle",
-    "stock": 25,
+    "stock": 24,
     "image": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500"
   },
   {
@@ -38,7 +53,7 @@
     "name": "RGB Mechanical Keyboard",
     "price": 3499,
     "category": "Electronics",
-    "stock": 8,
+    "stock": 7,
     "image": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=500"
   }
 ]

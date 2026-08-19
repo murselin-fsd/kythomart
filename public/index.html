@@ -1946,38 +1946,47 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
 
-  <script id="secure-cart-auth">
-    // Wait for the DOM and scripts to load, then wrap addToCartCustom
-    window.addEventListener("DOMContentLoaded", () => {
-      if (typeof window.addToCartCustom === 'function' && !window._originalAddToCartCustom) {
-        window._originalAddToCartCustom = window.addToCartCustom;
-        
-        window.addToCartCustom = function(prod, selectedSize) {
-          // Check if user is logged in
-          const isLoggedIn = window.currentUser || localStorage.getItem("kytho_logged_in") === "true";
+  
 
-          if (!isLoggedIn) {
-            if (typeof showToast === "function") {
-              showToast("🔒 Please sign in to your account first to add items to your cart.", "error");
-            } else {
-              alert("Please sign in to your account first to add items to your cart.");
-            }
 
-            // Open profile or trigger sign in
-            if (typeof handleUserHeaderClick === "function") {
-              handleUserHeaderClick();
-            } else if (typeof switchView === "function") {
-              switchView("profile");
+<script id="secure-cart-auth">
+  window.addEventListener("DOMContentLoaded", () => {
+    if (typeof window.addToCartCustom === 'function' && !window._origAddToCartSecure) {
+      window._origAddToCartSecure = window.addToCartCustom;
+      window.addToCartCustom = function(prod, selectedSize) {
+        // Sync currentUser from localStorage if needed
+        let activeUser = (typeof currentUser !== 'undefined' && currentUser) ? currentUser : null;
+        if (!activeUser) {
+          try {
+            const stored = localStorage.getItem("currentUser");
+            if (stored && stored !== "undefined" && stored !== "null") {
+              activeUser = JSON.parse(stored);
+              currentUser = activeUser; // sync back to global scope
             }
-            return;
+          } catch(e) {}
+        }
+
+        // If still not signed in, block and prompt sign in
+        if (!activeUser) {
+          if (typeof showToast === "function") {
+            showToast("🔒 Please sign in to your account first to add items to your cart.", "error");
+          } else {
+            alert("Please sign in to your account first to add items to your cart.");
           }
+          if (typeof handleUserHeaderClick === "function") {
+            handleUserHeaderClick();
+          } else if (typeof switchView === "function") {
+            switchView("profile");
+          }
+          return;
+        }
 
-          // If logged in, proceed
-          window._originalAddToCartCustom(prod, selectedSize);
-        };
-      }
-    });
-  </script>
+        // If signed in, proceed normally
+        window._origAddToCartSecure(prod, selectedSize);
+      };
+    }
+  });
+</script>
 
 </body>
 </html>

@@ -6,6 +6,21 @@ const { GoogleGenAI } = require('@google/genai');
 require('dotenv').config();
 
 const app = express();
+
+const multer = require('multer');
+const uploadStorage = multer.diskStorage({
+  destination: './public/uploads/',
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+  }
+});
+const upload = multer({ storage: uploadStorage });
+
+app.post('/api/upload-image', upload.single('image'), (req, res) => {
+  if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
+  res.json({ success: true, url: '/uploads/' + req.file.filename });
+});
+
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());

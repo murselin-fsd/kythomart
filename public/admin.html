@@ -133,7 +133,13 @@
             <input type="text" id="new-prod-sizes" placeholder="Sizes" class="border rounded-xl p-2.5 text-sm" />
             <input type="url" id="new-prod-image" placeholder="Image URL" class="border rounded-xl p-2.5 text-sm" />
             <div class="md:col-span-3 lg:col-span-7 flex justify-end">
-              <button type="button" onclick="addNewProduct()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition">+ Publish Product</button>
+              
+  <div style="grid-column: span 2; margin-bottom: 10px;">
+    <label style="display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px;">Product Image File:</label>
+    <input type="file" id="new-prod-file" accept="image/*" class="border rounded-xl p-2 text-sm w-full bg-white" />
+  </div>
+
+<button type="button" onclick="addNewProduct()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition">+ Publish Product</button>
             </div>
           </div>
         </div>
@@ -517,26 +523,54 @@
     }
 
     async function addNewProduct() {
-      const payload = {
-        name: document.getElementById('new-prod-name').value.trim(),
-        price: document.getElementById('new-prod-price').value.trim(),
-        costPrice: document.getElementById('new-prod-cost').value.trim(),
-        category: document.getElementById('new-prod-category').value.trim(),
-        stock: document.getElementById('new-prod-stock').value.trim(),
-        sizes: document.getElementById('new-prod-sizes').value.trim(),
-        image: document.getElementById('new-prod-image').value.trim()
-      };
-      if (!payload.name || !payload.price) return alert('Name and Selling Price required.');
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        alert('Product published with profit margins!');
-        renderInventoryTable();
+  const fileInput = document.getElementById('new-prod-file');
+  let imageUrl = 'https://via.placeholder.com/300';
+
+  if (fileInput && fileInput.files[0]) {
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+    try {
+      const uploadRes = await fetch('/api/upload-image', { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json();
+      if (uploadData.success && uploadData.url) {
+        imageUrl = uploadData.url;
       }
+    } catch (err) {
+      console.error('Image upload failed:', err);
     }
+  }
+
+  const nameInput = document.getElementById('new-prod-name') || document.getElementById('productName') || document.querySelector('input[placeholder*="Name"]');
+  const priceInput = document.getElementById('new-prod-price');
+  const costInput = document.getElementById('new-prod-cost');
+  const stockInput = document.getElementById('new-prod-stock') || document.getElementById('stock');
+
+  const payload = {
+    name: nameInput ? nameInput.value.trim() : 'New Product',
+    price: priceInput ? priceInput.value.trim() : '0',
+    costPrice: costInput ? costInput.value.trim() : '0',
+    stock: stockInput ? stockInput.value.trim() : '10',
+    image: imageUrl
+  };
+
+  if (!payload.price) {
+    alert('Please enter a selling price.');
+    return;
+  }
+
+  const res = await fetch('/api/products', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (res.ok) {
+    alert('Product published successfully with image!');
+    location.reload();
+  } else {
+    alert('Failed to publish product.');
+  }
+}
 
     async function deleteProduct(id) {
       if (!confirm('Delete product?')) return;

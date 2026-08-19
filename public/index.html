@@ -9,6 +9,15 @@
     tailwind.config = { darkMode: 'class' }
   </script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <style id="hide-dark-mode-safely">
+    button#theme-toggle,
+    button[onclick*="toggleTheme"],
+    .theme-toggle-btn {
+      display: none !important;
+    }
+  </style>
+
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
   <!-- Premium Gorgeous UI Overhaul & 3-Dot Menu -->
@@ -679,7 +688,7 @@
     <div>
       <div class="flex justify-between items-center border-b dark:border-slate-800 pb-3 mb-4">
         <h3 class="text-lg font-bold">Shopping Cart</h3>
-        <button type="button" onclick="toggleCartDrawer()" class="text-2xl text-slate-400">&times;</button>
+<button type="button" onclick="document.getElementById('cart-drawer').classList.add('hidden')" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl text-sm font-black transition-all shadow-lg cursor-pointer flex items-center gap-2 z-50 relative">✕ Close</button>
       </div>
 
       <div id="free-shipping-box" class="bg-amber-50 dark:bg-amber-950/40 border border-amber-100 dark:border-amber-900/50 p-3 rounded-2xl mb-4 text-xs space-y-1">
@@ -815,8 +824,14 @@
   <div id="modal-wishlist" class="fixed inset-y-0 right-0 max-w-md w-full bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 shadow-2xl p-6 hidden z-50 flex flex-col justify-between transition-colors duration-300">
     <div>
       <div class="flex justify-between items-center border-b dark:border-slate-800 pb-3 mb-4">
-        <h3 class="text-lg font-bold">Saved Favorites ❤️</h3>
-        <button type="button" onclick="toggleWishlistModal()" class="text-2xl text-slate-400">&times;</button>
+        
+<div class="flex justify-between items-center mb-4 pb-4 border-b border-slate-200 dark:border-slate-800 w-full">
+  <h3 class="text-lg font-bold">Saved Favorites ❤️</h3>
+  <button type="button" onclick="toggleWishlistModal()" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-900 rounded-xl text-sm font-black transition-all shadow-lg cursor-pointer flex items-center gap-2 z-50 relative">
+    ✕ Close
+  </button>
+</div>
+
       </div>
       <div id="wishlist-items-box" class="divide-y dark:divide-slate-800 max-h-[70vh] overflow-y-auto"></div>
     </div>
@@ -1662,59 +1677,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
 
 
-  <script id="cart-drag-fix">
-    document.addEventListener("DOMContentLoaded", () => {
-      function getCartDrawer() {
-        return document.getElementById("cart-modal") || 
-               document.getElementById("cart-drawer") || 
-               document.querySelector(".cart-drawer") || 
-               document.querySelector(".cart-modal");
-      }
-
-      const cart = getCartDrawer();
-      if (cart && !document.getElementById("cart-custom-close-btn")) {
-        const titleEl = cart.querySelector("h2") || cart.querySelector(".text-xl") || cart.firstChild;
-        if (titleEl) {
-          const closeHeader = document.createElement("div");
-          closeHeader.id = "cart-custom-close-btn";
-          closeHeader.className = "flex items-center justify-between pb-3 mb-4 border-b border-slate-200 dark:border-slate-800 pr-12"; // Added right padding so it avoids the 3-dot button
-          closeHeader.innerHTML = `
-            <span class="text-xs font-bold tracking-wider text-slate-400 uppercase">Cart Drawer</span>
-            <button type="button" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-md cursor-pointer flex items-center gap-1">
-              ✕ Close Cart
-            </button>
-          `;
-          
-          closeHeader.querySelector("button").onclick = () => {
-            cart.classList.add("hidden");
-            cart.style.display = "none";
-            const backdrop = document.getElementById("cart-backdrop");
-            if (backdrop) {
-              backdrop.classList.add("hidden");
-              backdrop.style.display = "none";
-            }
-          };
-
-          titleEl.parentNode.insertBefore(closeHeader, titleEl);
-        }
-      }
-
-      // Automatically hide/show the top-right 3-dot button when cart opens/closes to prevent clashing
-      const observer = new MutationObserver(() => {
-        const c = getCartDrawer();
-        const threeDotBtn = document.querySelector(".fixed.top-4.right-4");
-        if (c && threeDotBtn) {
-          const isOpen = !c.classList.contains("hidden") && c.style.display !== "none";
-          threeDotBtn.style.opacity = isOpen ? "0" : "1";
-          threeDotBtn.style.pointerEvents = isOpen ? "none" : "auto";
-        }
-      });
-
-      if (cart) {
-        observer.observe(cart, { attributes: true, attributeFilter: ["class", "style"] });
-      }
-    });
-  </script>
+  
 
 
   <!-- Contact Us Section Injection -->

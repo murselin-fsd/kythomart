@@ -38,7 +38,7 @@
   </style>
 
   <div class="fixed top-4 right-4 z-[9999]">
-    <button type="button" onclick="document.getElementById('manual-dropdown-menu').classList.toggle('hidden')" class="p-3 rounded-2xl hover:scale-105 active:scale-95 transition-all duration-200 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 shadow-lg bg-white/90 dark:bg-slate-900/90 premium-glass cursor-pointer flex items-center justify-center group">
+    <button type="button" onclick="checkAndToggleMenu()" class="p-3 rounded-2xl hover:scale-105 active:scale-95 transition-all duration-200 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700/80 shadow-lg bg-white/90 dark:bg-slate-900/90 premium-glass cursor-pointer flex items-center justify-center group">
       <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
     </button>
     <div id="manual-dropdown-menu" class="hidden absolute right-0 mt-3 w-60 bg-white/95 dark:bg-slate-900/95 premium-glass border border-slate-200/80 dark:border-slate-800 rounded-3xl shadow-2xl py-3 text-xs font-medium tracking-wide z-[10000]">
@@ -62,7 +62,7 @@
 
   <!-- Safe Manual 3-Dot Menu -->
   <div class="fixed top-4 right-4 z-[9999]">
-    <button type="button" onclick="document.getElementById('manual-dropdown-menu').classList.toggle('hidden')" class="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-700 dark:text-slate-200 border bg-white dark:bg-slate-900 shadow-sm cursor-pointer">
+    <button type="button" onclick="checkAndToggleMenu()" class="p-2.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition text-slate-700 dark:text-slate-200 border bg-white dark:bg-slate-900 shadow-sm cursor-pointer">
       <svg class="w-5 h-5 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path></svg>
     </button>
     <div id="manual-dropdown-menu" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 border dark:border-slate-800 rounded-2xl shadow-2xl py-2 text-xs font-semibold z-[10000]">
@@ -1984,6 +1984,230 @@ document.addEventListener('DOMContentLoaded', () => {
         // If signed in, proceed normally
         window._origAddToCartSecure(prod, selectedSize);
       };
+    }
+  });
+</script>
+
+<!-- interceptor-active -->
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    // Find all buttons that control the manual-dropdown-menu
+    const menuDivs = document.querySelectorAll("#manual-dropdown-menu");
+    menuDivs.forEach(menu => {
+      // Find the parent container or previous button element
+      const parent = menu.parentElement;
+      if (parent) {
+        const btn = parent.querySelector("button");
+        if (btn) {
+          // Intercept the click event
+          btn.addEventListener("click", function(e) {
+            // Check if user is authenticated
+            let authed = false;
+            try {
+              if (typeof currentUser !== "undefined" && currentUser && currentUser !== null) {
+                if (currentUser.email || currentUser.id || currentUser.name) {
+                  authed = true;
+                }
+              }
+            } catch(err) {}
+
+            if (!authed) {
+              // Stop the click from opening the menu
+              e.stopImmediatePropagation();
+              e.preventDefault();
+              
+              // Force menu to stay hidden
+              menu.classList.add("hidden");
+
+              alert("🔒 Security Notice: You must sign in first to view account contents and 3-dot menu data.");
+              
+              if (typeof openUserAuthModal === "function") {
+                openUserAuthModal();
+              }
+            }
+          }, true); // Use capture phase to intercept before inline handlers fire
+        }
+      }
+    });
+  });
+</script>
+
+
+<script>
+  function checkAndToggleMenu() {
+    // Strictly validate currentUser state
+    let isValidUser = false;
+    try {
+      const stored = localStorage.getItem("currentUser");
+      if (stored && stored !== "undefined" && stored !== "null" && stored !== "{}") {
+        const parsed = JSON.parse(stored);
+        if (parsed && (parsed.email || parsed.id || parsed.name || parsed.userId)) {
+          isValidUser = true;
+        }
+      }
+      if (typeof currentUser !== "undefined" && currentUser && currentUser !== null) {
+        if (currentUser.email || currentUser.id || currentUser.name || currentUser.userId) {
+          isValidUser = true;
+        }
+      }
+    } catch (e) {}
+
+    // If not validly signed in, block access and trigger auth modal
+    if (!isValidUser) {
+      // Ensure menus stay hidden
+      document.querySelectorAll("#manual-dropdown-menu").forEach(m => m.classList.add("hidden"));
+      
+      alert("🔒 Security Notice: Please sign in first to access the 3-dot menu and account features.");
+      
+      if (typeof openUserAuthModal === "function") {
+        openUserAuthModal();
+      } else if (typeof toggleUserAuthModal === "function") {
+        toggleUserAuthModal();
+      }
+      return;
+    }
+
+    // If authenticated, toggle the dropdown menus normally
+    document.querySelectorAll("#manual-dropdown-menu").forEach(menu => {
+      menu.classList.toggle("hidden");
+    });
+  }
+</script>
+
+
+<style>
+  /* Ensure unauthenticated dropdowns are never visible */
+  body:not(.user-authenticated) #manual-dropdown-menu {
+    display: none !important;
+  }
+</style>
+<script>
+  // Clean up any invalid/empty stored user data on load
+  try {
+    const stored = localStorage.getItem("currentUser");
+    if (stored === "{}" || stored === "undefined" || stored === "null") {
+      localStorage.removeItem("currentUser");
+    }
+  } catch(e) {}
+
+  function checkAndToggleMenu() {
+    let isValidUser = false;
+    try {
+      const stored = localStorage.getItem("currentUser");
+      if (stored && stored !== "undefined" && stored !== "null" && stored !== "{}") {
+        const parsed = JSON.parse(stored);
+        if (parsed && (parsed.email || parsed.id || parsed.name || parsed.userId || parsed.token)) {
+          isValidUser = true;
+        }
+      }
+      if (typeof currentUser !== "undefined" && currentUser && currentUser !== null) {
+        if (currentUser.email || currentUser.id || currentUser.name || currentUser.userId || currentUser.token) {
+          isValidUser = true;
+        }
+      }
+    } catch (e) {}
+
+    if (!isValidUser) {
+      document.body.classList.remove("user-authenticated");
+      document.querySelectorAll("#manual-dropdown-menu").forEach(m => {
+        m.classList.add("hidden");
+        m.style.display = "none";
+      });
+      
+      alert("🔒 Security Notice: Please sign in first to access the 3-dot menu and account features.");
+      
+      if (typeof openUserAuthModal === "function") {
+        openUserAuthModal();
+      } else if (typeof toggleUserAuthModal === "function") {
+        toggleUserAuthModal();
+      }
+      return;
+    }
+
+    // Authenticated: toggle display
+    document.body.classList.add("user-authenticated");
+    document.querySelectorAll("#manual-dropdown-menu").forEach(menu => {
+      const isHidden = menu.classList.contains("hidden") || menu.style.display === "none";
+      if (isHidden) {
+        menu.classList.remove("hidden");
+        menu.style.display = "block";
+      } else {
+        menu.classList.add("hidden");
+        menu.style.display = "none";
+      }
+    });
+  }
+
+  // Sync authentication body class on load and updates
+  document.addEventListener("DOMContentLoaded", () => {
+    let authed = false;
+    try {
+      const stored = localStorage.getItem("currentUser");
+      if (stored && stored !== "undefined" && stored !== "null" && stored !== "{}") {
+        authed = true;
+      }
+    } catch(e) {}
+    if (authed) {
+      document.body.classList.add("user-authenticated");
+    } else {
+      document.body.classList.remove("user-authenticated");
+    }
+  });
+</script>
+
+
+<script>
+  // Intercept view switching to prevent unauthorized access to profile/account data
+  const originalSwitchView = window.switchView || function(){};
+  window.switchView = function(view) {
+    if (view === 'profile') {
+      let isAuthed = false;
+      try {
+        const stored = localStorage.getItem("currentUser");
+        if (stored && stored !== "undefined" && stored !== "null" && stored !== "{}") {
+          const parsed = JSON.parse(stored);
+          if (parsed && (parsed.email || parsed.id || parsed.name || parsed.userId || parsed.token)) {
+            isAuthed = true;
+          }
+        }
+        if (typeof currentUser !== "undefined" && currentUser && currentUser !== null) {
+          if (currentUser.email || currentUser.id || currentUser.name || currentUser.userId) {
+            isAuthed = true;
+          }
+        }
+      } catch(e) {}
+
+      if (!isAuthed) {
+        alert("🔒 Security Breach Blocked: You must sign in to view account profiles and past orders.");
+        if (typeof openUserAuthModal === "function") {
+          openUserAuthModal();
+        } else if (typeof toggleUserAuthModal === "function") {
+          toggleUserAuthModal();
+        }
+        // Force fallback to store view
+        originalSwitchView('store');
+        return;
+      }
+    }
+    originalSwitchView(view);
+  };
+
+  // Ensure profile view is strictly hidden on initial page load if not signed in
+  document.addEventListener("DOMContentLoaded", () => {
+    let isAuthed = false;
+    try {
+      const stored = localStorage.getItem("currentUser");
+      if (stored && stored !== "undefined" && stored !== "null" && stored !== "{}") {
+        isAuthed = true;
+      }
+    } catch(e) {}
+
+    if (!isAuthed) {
+      const profileView = document.getElementById("view-profile");
+      if (profileView) {
+        profileView.classList.add("hidden");
+      }
     }
   });
 </script>

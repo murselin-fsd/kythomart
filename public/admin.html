@@ -128,7 +128,22 @@
             <input type="text" id="new-prod-name" placeholder="Title *" class="border rounded-xl p-2.5 text-sm" />
             <input type="number" id="new-prod-price" placeholder="Selling Price (₹) *" class="border rounded-xl p-2.5 text-sm" />
             <input type="number" id="new-prod-cost" placeholder="Cost Price (₹)" class="border rounded-xl p-2.5 text-sm" />
-            <input type="text" id="new-prod-category" placeholder="Category" class="border rounded-xl p-2.5 text-sm" />
+            <select id="category" name="category" class="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium" required>
+    <option value="" disabled selected>Select Category *</option>
+    <option value="Fashion">Fashion</option>
+    <option value="Mobiles">Mobiles</option>
+    <option value="Electronics">Electronics</option>
+    <option value="Beauty">Beauty</option>
+    <option value="Home">Home</option>
+    <option value="Appliances">Appliances</option>
+    <option value="Toys, baby">Toys, baby</option>
+    <option value="Food & Health">Food & Health</option>
+    <option value="Auto Accessories">Auto Accessories</option>
+    <option value="Sports & Fitness">Sports & Fitness</option>
+    <option value="Furniture">Furniture</option>
+    <option value="Books & More">Books & More</option>
+    <option value="2 Wheelers">2 Wheelers</option>
+  </select>
             <input type="number" id="new-prod-stock" placeholder="Stock" class="border rounded-xl p-2.5 text-sm" />
             <input type="text" id="new-prod-sizes" placeholder="Sizes" class="border rounded-xl p-2.5 text-sm" />
             <input type="url" id="new-prod-image" placeholder="Image URLs (comma separated)" class="border rounded-xl p-2.5 text-sm" />

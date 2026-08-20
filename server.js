@@ -63,6 +63,8 @@ const { GoogleGenAI } = require('@google/genai');
 require('dotenv').config();
 
 const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const multer = require('multer');
 const uploadStorage = multer.diskStorage({
@@ -92,6 +94,71 @@ app.use((req, res, next) => {
   res.set('Expires', '0');
   next();
 });
+
+
+// API Routes (Must be before static middleware)
+app.put("/api/products/:id", (req, res) => {
+  try {
+    const rawId = req.params.id;
+    if (!fs.existsSync("products.json")) {
+      return res.status(404).json({ success: false, error: "products.json not found" });
+    }
+    let products = JSON.parse(fs.readFileSync("products.json", "utf8") || "[]");
+    const index = products.findIndex(p => String(p.id) === String(rawId));
+    
+    if (index === -1) {
+      return res.status(404).json({ success: false, error: "Product not found" });
+    }
+
+    if (req.body.stock !== undefined) {
+      products[index].stock = parseInt(req.body.stock) || 0;
+    }
+
+    fs.writeFileSync("products.json", JSON.stringify(products, null, 2));
+    return res.json({ success: true, product: products[index] });
+  } catch (err) {
+    console.error("Stock update error:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post("/api/products", (req, res) => {
+  try {
+    if (!fs.existsSync("products.json")) {
+      fs.writeFileSync("products.json", "[]");
+    }
+    let products = JSON.parse(fs.readFileSync("products.json", "utf8") || "[]");
+    const newId = products.length > 0 ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
+    
+    let imagesArr = [];
+    if (req.body.images) {
+      imagesArr = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+    } else if (req.body.image) {
+      imagesArr = [req.body.image];
+    } else {
+      imagesArr = ["https://via.placeholder.com/150"];
+    }
+
+    const newProduct = {
+      id: newId,
+      title: req.body.title || "Untitled Product",
+      sellingPrice: parseFloat(req.body.sellingPrice) || 0,
+      costPrice: parseFloat(req.body.costPrice) || 0,
+      category: req.body.category || "General",
+      stock: parseInt(req.body.stock) || 10,
+      sizes: req.body.sizes || "",
+      images: imagesArr
+    };
+
+    products.push(newProduct);
+    fs.writeFileSync("products.json", JSON.stringify(products, null, 2));
+    return res.json({ success: true, product: newProduct });
+  } catch (err) {
+    console.error("Error creating product:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 
 app.use(express.static(path.join(__dirname, 'public')));
 

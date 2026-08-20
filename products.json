@@ -5,7 +5,7 @@
     "price": 27000,
     "costPrice": 22000,
     "category": "General",
-    "stock": 23,
+    "stock": 0,
     "sizes": "Standard",
     "description": "High quality product.",
     "images": [
@@ -19,7 +19,7 @@
     "name": "Crocs Bayband White Clog",
     "price": 2800,
     "category": "Clogs",
-    "stock": 22,
+    "stock": 0,
     "sizes": "UK7,UK8,UK,9,UK10",
     "colors": "Default",
     "images": [
@@ -31,7 +31,7 @@
     "name": "Minimalist Leather Backpack",
     "price": 1899,
     "category": "Accessories",
-    "stock": 12,
+    "stock": 0,
     "images": [
       "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500"
     ]
@@ -41,7 +41,7 @@
     "name": "Wireless Studio Headphones",
     "price": 2999,
     "category": "Electronics",
-    "stock": 10,
+    "stock": 0,
     "images": [
       "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500"
     ]
@@ -51,7 +51,7 @@
     "name": "Insulated Stainless Bottle",
     "price": 649,
     "category": "Lifestyle",
-    "stock": 24,
+    "stock": 0,
     "images": [
       "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500"
     ]

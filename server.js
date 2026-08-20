@@ -122,42 +122,6 @@ app.put("/api/products/:id", (req, res) => {
   }
 });
 
-app.post("/api/products", (req, res) => {
-  try {
-    if (!fs.existsSync("products.json")) {
-      fs.writeFileSync("products.json", "[]");
-    }
-    let products = JSON.parse(fs.readFileSync("products.json", "utf8") || "[]");
-    const newId = products.length > 0 ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
-    
-    let imagesArr = [];
-    if (req.body.images) {
-      imagesArr = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
-    } else if (req.body.image) {
-      imagesArr = [req.body.image];
-    } else {
-      imagesArr = ["https://via.placeholder.com/150"];
-    }
-
-    const newProduct = {
-      id: newId,
-      title: req.body.title || "Untitled Product",
-      sellingPrice: parseFloat(req.body.sellingPrice) || 0,
-      costPrice: parseFloat(req.body.costPrice) || 0,
-      category: req.body.category || "General",
-      stock: parseInt(req.body.stock) || 10,
-      sizes: req.body.sizes || "",
-      images: imagesArr
-    };
-
-    products.push(newProduct);
-    fs.writeFileSync("products.json", JSON.stringify(products, null, 2));
-    return res.json({ success: true, product: newProduct });
-  } catch (err) {
-    console.error("Error creating product:", err);
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
 
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -771,43 +735,6 @@ app.post('/api/database/user-data', (req, res) => {
 
 
 // Handle Product Creation with multi-images array
-app.post("/api/products", (req, res) => {
-  try {
-    if (!fs.existsSync("products.json")) {
-      fs.writeFileSync("products.json", "[]");
-    }
-    let products = JSON.parse(fs.readFileSync("products.json", "utf8") || "[]");
-    
-    const newId = products.length > 0 ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
-    
-    let imagesArr = [];
-    if (req.body.images) {
-      imagesArr = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
-    } else if (req.body.image) {
-      imagesArr = [req.body.image];
-    } else {
-      imagesArr = ["https://via.placeholder.com/150"];
-    }
-
-    const newProduct = {
-      id: newId,
-      title: req.body.title || "Untitled Product",
-      sellingPrice: parseFloat(req.body.sellingPrice) || 0,
-      costPrice: parseFloat(req.body.costPrice) || 0,
-      category: req.body.category || "General",
-      stock: parseInt(req.body.stock) || 10,
-      sizes: req.body.sizes || "",
-      images: imagesArr
-    };
-
-    products.push(newProduct);
-    fs.writeFileSync("products.json", JSON.stringify(products, null, 2));
-    return res.json({ success: true, product: newProduct });
-  } catch (err) {
-    console.error("Error creating product:", err);
-    return res.status(500).json({ success: false, error: err.message });
-  }
-});
 
 
 app.listen(PORT, () => {
@@ -941,3 +868,49 @@ app.post("/api/user/refresh-token", (req, res) => {
     return res.status(403).json({ error: "Invalid refresh token. Please sign in again." });
   }
 });
+
+
+
+app.post("/api/products", (req, res) => {
+  try {
+    let products = [];
+    if (fs.existsSync("products.json")) {
+      try {
+        products = JSON.parse(fs.readFileSync("products.json", "utf8") || "[]");
+      } catch (e) {
+        products = [];
+      }
+    }
+    if (!Array.isArray(products)) products = [];
+
+    const body = req.body || {};
+    const title = body.title || body.name || "Untitled Product";
+    const price = parseFloat(body.price || body.sellingPrice || 0);
+
+    if (!title || price <= 0) {
+      return res.status(400).json({ success: false, error: "Name and price required." });
+    }
+
+    const newProduct = {
+      id: Date.now(),
+      title: title,
+      name: title,
+      price: price,
+      sellingPrice: price,
+      costPrice: parseFloat(body.costPrice || 0),
+      category: body.category || "General",
+      stock: parseInt(body.stock || 10),
+      sizes: body.sizes || "Standard",
+      image: body.image || (body.images && body.images[0]) || "https://via.placeholder.com/300",
+      images: body.images || [body.image || "https://via.placeholder.com/300"]
+    };
+
+    products.unshift(newProduct);
+    fs.writeFileSync("products.json", JSON.stringify(products, null, 2), "utf8");
+    return res.json({ success: true, product: newProduct, products: products });
+  } catch (err) {
+    console.error("Error creating product:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+  

@@ -1003,7 +1003,7 @@
 
       let list = products.filter(p => {
         const matchCat = activeCategory === 'all' || (p.category || 'General') === activeCategory;
-        const matchQ = p.name.toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q);
+        const matchQ = (p.name || p.title || '').toLowerCase().includes(q) || (p.category || '').toLowerCase().includes(q);
         return matchCat && matchQ;
       });
 

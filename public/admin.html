@@ -499,7 +499,203 @@
         return `
         <tr class="hover:bg-slate-50">
           <td class="p-4 font-semibold text-slate-800 flex items-center gap-3"><img src="${p.image}" class="w-8 h-8 rounded-lg object-cover" />${p.name}</td>
-          <td class="p-4 font-bold text-slate-800">${sym}${p.price.toFixed(2)}</td>
+          <td class="p-4 font-bold text-slate-800">${sym}${(Number(p.price) || 0).toFixed(2)}</td>
+          <td class="p-4 text-slate-500">${sym}${cost.toFixed(2)}</td>
+          <td class="p-4">
+            <span class="bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded text-xs">
+              +${sym}${profit.toFixed(2)} (${margin}%)
+            </span>
+          </td>
+          <td class="p-4">
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold ${isOut ? 'bg-rose-100 text-rose-800' : p.stock <= 4 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+              ${isOut ? '🔴 Out of Stock' : `${p.stock} units ${p.stock <= 4 ? '⚠️ Low' : ''}`}
+            </span>
+          </td>
+          <td class="p-4 text-right flex items-center justify-end gap-2">
+            <button type="button" data-id="${p.id}" data-stock="${p.stock || 0}" data-id="${p.id}" data-stock="${p.stock || 0}" onclick="toggleOutOfStock(${p.id}, ${p.stock || 0})" class="text-xs font-bold px-2.5 py-1 rounded-lg ${!isOut ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}">
+              ${!isOut ? 'Mark Out of Stock' : 'Restock (10)'}
+            </button>
+            <button type="button" onclick="deleteProduct(${p.id})" class="text-rose-600 hover:underline text-xs font-bold">Delete</button>
+          </td>
+        </tr>
+      `;
+      }).join('');
+    }
+
+    
+
+async function addNewProduct() {
+  const nameInput = document.getElementById("new-prod-name");
+  const priceInput = document.getElementById("new-prod-price");
+  const costInput = document.getElementById("new-prod-cost");
+  const catInput = document.getElementById("new-prod-category");
+  const stockInput = document.getElementById("new-prod-stock");
+  const sizesInput = document.getElementById("new-prod-sizes");
+  const fileInput = document.getElementById("new-prod-file");
+
+  const name = nameInput ? nameInput.value.trim() : "";
+  const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+
+  if (!name || price <= 0) {
+    alert("Please enter a valid product name and selling price.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("title", name);
+  formData.append("name", name);
+  formData.append("price", price);
+  formData.append("sellingPrice", price);
+  formData.append("costPrice", costInput ? parseFloat(costInput.value) || 0 : 0);
+  formData.append("category", catInput && catInput.value.trim() ? catInput.value.trim() : "General");
+  formData.append("stock", stockInput ? parseInt(stockInput.value) || 10 : 10);
+  formData.append("sizes", sizesInput ? sizesInput.value.trim() : "Standard");
+
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    formData.append("image", fileInput.files[0]);
+  }
+
+  try {
+    const res = await fetch("/api/products", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    if (res.ok && data.success !== false) {
+      alert("Product published successfully!");
+      window.location.reload();
+    } else {
+      alert("Failed to publish: " + (data.error || "Unknown error"));
+    }
+  } catch (err) {
+    console.error("Publish error:", err);
+    alert("Error connecting to server while publishing.");
+  }
+}
+  
+
+async function renderInventoryTable() {
+      const res = await fetch('/api/products');
+      products = await res.json();
+      const sym = storeSettings.currency || '₹';
+      document.getElementById('inventory-table-body').innerHTML = products.map(p => {
+        const cost = p.costPrice || 0;
+        const profit = p.price - cost;
+        const margin = p.price > 0 ? ((profit / p.price) * 100).toFixed(1) : 0;
+        const isOut = (p.stock || 0) <= 0;
+        return `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-semibold text-slate-800 flex items-center gap-3"><img src="${p.image}" class="w-8 h-8 rounded-lg object-cover" />${p.name}</td>
+          <td class="p-4 font-bold text-slate-800">${sym}${(Number(p.price) || 0).toFixed(2)}</td>
+          <td class="p-4 text-slate-500">${sym}${cost.toFixed(2)}</td>
+          <td class="p-4">
+            <span class="bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded text-xs">
+              +${sym}${profit.toFixed(2)} (${margin}%)
+            </span>
+          </td>
+          <td class="p-4">
+            <span class="px-2.5 py-1 rounded-md text-xs font-bold ${isOut ? 'bg-rose-100 text-rose-800' : p.stock <= 4 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+              ${isOut ? '🔴 Out of Stock' : `${p.stock} units ${p.stock <= 4 ? '⚠️ Low' : ''}`}
+            </span>
+          </td>
+          <td class="p-4 text-right flex items-center justify-end gap-2">
+            <button type="button" data-id="${p.id}" data-stock="${p.stock || 0}" data-id="${p.id}" data-stock="${p.stock || 0}" onclick="toggleOutOfStock(${p.id}, ${p.stock || 0})" class="text-xs font-bold px-2.5 py-1 rounded-lg ${!isOut ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}">
+              ${!isOut ? 'Mark Out of Stock' : 'Restock (10)'}
+            </button>
+            <button type="button" onclick="deleteProduct(${p.id})" class="text-rose-600 hover:underline text-xs font-bold">Delete</button>
+          </td>
+        </tr>
+      `;
+      }).join('');
+    }
+
+    
+async function addNewProduct() {
+  const nameInput = document.getElementById("new-prod-name");
+  const priceInput = document.getElementById("new-prod-price");
+  const costInput = document.getElementById("new-prod-cost");
+  const catInput = document.getElementById("new-prod-category");
+  const stockInput = document.getElementById("new-prod-stock");
+  const sizesInput = document.getElementById("new-prod-sizes");
+  const imageInput = document.getElementById("new-prod-image");
+  const fileInput = document.getElementById("new-prod-file");
+
+  const name = nameInput ? nameInput.value.trim() : "";
+  const price = priceInput ? parseFloat(priceInput.value) || 0 : 0;
+
+  if (!name) {
+    alert("Please enter a product title/name.");
+    if (nameInput) nameInput.focus();
+    return;
+  }
+  if (price <= 0) {
+    alert("Please enter a valid selling price.");
+    if (priceInput) priceInput.focus();
+    return;
+  }
+
+  let imageUrl = imageInput && imageInput.value.trim() ? imageInput.value.trim() : "https://via.placeholder.com/300";
+
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    const formData = new FormData();
+    formData.append("image", fileInput.files[0]);
+    try {
+      const uploadRes = await fetch("/api/upload-image", { method: "POST", body: formData });
+      const uploadData = await uploadRes.json();
+      if (uploadData && uploadData.success && uploadData.url) {
+        imageUrl = uploadData.url;
+      }
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    }
+  }
+
+  const payload = {
+    name: name,
+    title: name,
+    price: price,
+    sellingPrice: price,
+    costPrice: costInput ? parseFloat(costInput.value) || 0 : 0,
+    category: catInput && catInput.value.trim() ? catInput.value.trim() : "General",
+    stock: stockInput ? parseInt(stockInput.value) || 10 : 10,
+    sizes: sizesInput ? sizesInput.value.trim() : "Standard",
+    image: imageUrl,
+    images: [imageUrl]
+  };
+
+  try {
+    const res = await fetch("/api/products", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok && (data.success !== false)) {
+      alert("Product published successfully!");
+      window.location.reload();
+    } else {
+      alert("Failed to publish: " + (data.error || "Unknown error"));
+    }
+  } catch (err) {
+    console.error("Publish error:", err);
+    alert("Error connecting to server while publishing.");
+  }
+}
+  
+
+async function renderInventoryTable() {
+      const res = await fetch('/api/products');
+      products = await res.json();
+      const sym = storeSettings.currency || '₹';
+      document.getElementById('inventory-table-body').innerHTML = products.map(p => {
+        const cost = p.costPrice || 0;
+        const profit = p.price - cost;
+        const margin = p.price > 0 ? ((profit / p.price) * 100).toFixed(1) : 0;
+        const isOut = (p.stock || 0) <= 0;
+        return `
+        <tr class="hover:bg-slate-50">
+          <td class="p-4 font-semibold text-slate-800 flex items-center gap-3"><img src="${p.image}" class="w-8 h-8 rounded-lg object-cover" />${p.name}</td>
+          <td class="p-4 font-bold text-slate-800">${sym}${(Number(p.price) || 0).toFixed(2)}</td>
           <td class="p-4 text-slate-500">${sym}${cost.toFixed(2)}</td>
           <td class="p-4">
             <span class="bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded text-xs">

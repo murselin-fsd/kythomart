@@ -25,5 +25,16 @@
     "email": "Murselin.khan.320@gmail.com",
     "password": "$2b$10$PhhtY01osy5WA/HNWEwsDOqqBqWaNBMhBFuC6N.I0tNHlzDG4COc.",
     "name": "MURSELIN KHAN"
+  },
+  {
+    "id": "USR-1787205370207",
+    "name": "akash khan",
+    "email": "murselin.khan@hotmail.com",
+    "password": "@Akash.786082",
+    "phone": "8250628028",
+    "address": "vill-gobra, post-jamitya, city- tamluk, 721134\ngobra furniture factory",
+    "city": "PASKURA",
+    "zip": "721134",
+    "wishlist": []
   }
 ]

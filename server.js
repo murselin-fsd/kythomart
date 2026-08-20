@@ -618,6 +618,90 @@ app.post('/api/user/verify-and-update', (req, res) => {
   res.json({ success: true, user: users[userIndex], message: "Account details updated successfully!" });
 });
 
+
+// --- User-Specific Isolated Data Storage Endpoints ---
+
+// Get User Specific Data (Wishlist, Cart, Orders)
+app.get('/api/user/data/:email', (req, res) => {
+  const email = req.params.email.toLowerCase().trim();
+  const users = readData(USERS_FILE);
+  const user = users.find(u => u.email.toLowerCase() === email);
+  
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  res.json({
+    success: true,
+    wishlist: user.wishlist || [],
+    cart: user.cart || [],
+    orders: user.orders || []
+  });
+});
+
+// Save User Specific Data
+app.post('/api/user/data/save', (req, res) => {
+  const { email, wishlist, cart, orders } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required." });
+
+  let users = readData(USERS_FILE);
+  const userIndex = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (userIndex === -1) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  if (wishlist !== undefined) users[userIndex].wishlist = wishlist;
+  if (cart !== undefined) users[userIndex].cart = cart;
+  if (orders !== undefined) users[userIndex].orders = orders;
+
+  writeData(USERS_FILE, users);
+  res.json({ success: true, message: "User data saved securely and privately." });
+});
+
+
+// --- Centralized User Database Endpoints for True Isolation ---
+
+// Get User Database Profile (Wishlist, Cart, Orders)
+app.get('/api/database/user-data', (req, res) => {
+  const email = req.query.email;
+  if (!email) return res.status(400).json({ error: "Email is required." });
+
+  const users = readData(USERS_FILE);
+  const user = users.find(u => u.email.toLowerCase() === email.toLowerCase().trim());
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found in database." });
+  }
+
+  res.json({
+    success: true,
+    wishlist: user.wishlist || [],
+    cart: user.cart || [],
+    orders: user.orders || []
+  });
+});
+
+// Update User Database Profile
+app.post('/api/database/user-data', (req, res) => {
+  const { email, wishlist, cart, orders } = req.body;
+  if (!email) return res.status(400).json({ error: "Email is required." });
+
+  let users = readData(USERS_FILE);
+  const index = users.findIndex(u => u.email.toLowerCase() === email.toLowerCase().trim());
+
+  if (index === -1) {
+    return res.status(404).json({ error: "User not found in database." });
+  }
+
+  if (wishlist !== undefined) users[index].wishlist = wishlist;
+  if (cart !== undefined) users[index].cart = cart;
+  if (orders !== undefined) users[index].orders = orders;
+
+  writeData(USERS_FILE, users);
+  res.json({ success: true, message: "User data successfully saved to database." });
+});
+
 app.listen(PORT, () => {
   console.log(`=================================================`);
   console.log(`🚀 Customer Store: http://localhost:${PORT}`);

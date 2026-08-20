@@ -2296,5 +2296,107 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 </script>
 
+
+<script>
+  // --- SECURE WISHLIST ISOLATION PATCH ---
+  function getActiveWishlistKey() {
+    try {
+      const user = JSON.parse(localStorage.getItem('currentUser'));
+      if (user && user.email) {
+        return 'userWishlist_' + user.email.toLowerCase().trim();
+      }
+    } catch(e) {}
+    return null;
+  }
+
+  // Override toggleFav to strictly require login
+  window.toggleFav = function(id) {
+    const storageKey = getActiveWishlistKey();
+    if (!storageKey) {
+      alert("Please sign in or create an account to save items to your wishlist!");
+      if (typeof toggleUserAccountModal === 'function') toggleUserAccountModal();
+      return;
+    }
+
+    let wishlist = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    const idx = wishlist.indexOf(id);
+    if (idx > -1) wishlist.splice(idx, 1);
+    else wishlist.push(id);
+    localStorage.setItem(storageKey, JSON.stringify(wishlist));
+
+    // Update badge
+    const badge = document.getElementById('wishlist-badge');
+    if (badge) badge.innerText = wishlist.length;
+
+    // Refresh modal if open
+    if (typeof toggleWishlistModal === 'function' && document.getElementById('modal-wishlist') && !document.getElementById('modal-wishlist').classList.contains('hidden')) {
+      toggleWishlistModal();
+      toggleWishlistModal();
+    }
+  };
+
+  // Secure toggleWishlistModal with authentication check
+  window.toggleWishlistModal = function() {
+    const modal = document.getElementById('modal-wishlist');
+    if (!modal) return;
+
+    const isHidden = modal.classList.contains('hidden');
+    if (isHidden) {
+      const activeUser = JSON.parse(localStorage.getItem('currentUser'));
+      const container = document.getElementById('wishlist-items-box');
+      const badge = document.getElementById('wishlist-badge');
+
+      if (!activeUser || !activeUser.email) {
+        if (container) {
+          container.innerHTML = '<div class="py-12 text-center text-slate-400 text-xs">Please sign in to view your saved favorites.</div>';
+        }
+        if (badge) badge.innerText = "0";
+      } else {
+        const key = 'userWishlist_' + activeUser.email.toLowerCase().trim();
+        const wishlist = JSON.parse(localStorage.getItem(key) || '[]');
+        if (badge) badge.innerText = wishlist.length;
+
+        if (container && typeof products !== 'undefined') {
+          const sym = (typeof storeSettings !== 'undefined' && storeSettings.currency) ? storeSettings.currency : '₹';
+          const favs = products.filter(p => wishlist.includes(p.id));
+          if (favs.length === 0) {
+            container.innerHTML = '<div class="py-12 text-center text-slate-400 text-xs">No favorites saved. Click ❤️ on products to save them!</div>';
+          } else {
+            container.innerHTML = favs.map(p => `
+              <div class="py-3 flex items-center justify-between gap-3 text-xs">
+                <img src="${p.image}" class="w-10 h-10 rounded-xl object-cover" />
+                <div class="flex-1">
+                  <p class="font-bold text-slate-800 dark:text-slate-200">${p.name}</p>
+                  <p class="font-bold text-slate-900 dark:text-slate-100">${sym}${p.price.toFixed(2)}</p>
+                </div>
+                <button type="button" onclick="openProductModal(${p.id}); toggleWishlistModal();" class="bg-amber-600 text-white text-[11px] px-2 py-1 rounded-lg font-bold">View</button>
+                <button type="button" onclick="toggleFav(${p.id})" class="text-rose-500 font-bold">&times;</button>
+              </div>
+            `).join('');
+          }
+        }
+      }
+    }
+    modal.classList.toggle('hidden');
+  };
+
+  // Secure logout handler override
+  const originalLogout = window.handleUserLogout;
+  window.handleUserLogout = function() {
+    localStorage.removeItem("currentUser");
+    currentUser = null;
+    const badge = document.getElementById("wishlist-badge");
+    if (badge) badge.innerText = "0";
+    const container = document.getElementById('wishlist-items-box');
+    if (container) container.innerHTML = '<div class="py-12 text-center text-slate-400 text-xs">Please sign in to view your saved favorites.</div>';
+    
+    if (typeof originalLogout === 'function') {
+      originalLogout();
+    } else {
+      window.location.reload();
+    }
+  };
+</script>
+
 </body>
 </html>

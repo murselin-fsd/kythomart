@@ -18,6 +18,7 @@
     }
   </style>
 
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 min-h-screen flex flex-col font-sans transition-colors duration-300">
   <!-- Premium Gorgeous UI Overhaul & 3-Dot Menu -->
@@ -738,10 +739,28 @@
       <div id="user-login-error" class="hidden bg-rose-50 text-rose-700 text-xs font-semibold p-2.5 rounded-xl"></div>
 
       <div id="box-user-login" class="space-y-3">
+  <!-- Google Sign-In Button Container -->
+  <div class="mb-3 flex justify-center">
+    <div id="g_id_onload"
+         data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+         data-callback="handleGoogleLogin"
+         data-auto_prompt="false">
+    </div>
+    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="sign_in_with" data-size="large" data-width="100%"></div>
+  </div>
+  <div class="relative flex py-2 items-center">
+    <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+    <span class="flex-shrink mx-4 text-xs text-slate-400 uppercase">Or with email</span>
+    <div class="flex-grow border-t border-slate-200 dark:border-slate-700"></div>
+  </div>
         <p class="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 p-2 rounded-lg">Demo: <b class="text-amber-600 dark:text-amber-400">user@example.com / user123</b></p>
         <input type="email" id="u-login-email" value="user@example.com" placeholder="Email Address" class="w-full border dark:border-slate-700 bg-transparent rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100" />
         <input type="password" id="u-login-pass" value="user123" placeholder="Password" class="w-full border dark:border-slate-700 bg-transparent rounded-xl p-2.5 text-sm text-slate-900 dark:text-slate-100" />
-        <button type="button" onclick="executeCustomerLogin()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm py-2.5 rounded-xl transition shadow-sm">Sign In ➔</button>
+        
+  <button type="button" onclick="executeCustomerLogin()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm py-2.5 rounded-xl transition shadow-sm">Sign In ➔</button>
+  <div class="text-right mt-1">
+    <a href="javascript:void(0)" onclick="openForgotPasswordPrompt()" class="text-xs text-amber-600 dark:text-amber-400 font-semibold hover:underline">Forgot Password?</a>
+  </div>
         <p class="text-xs text-center text-slate-500 dark:text-slate-400">New customer? <a href="javascript:void(0)" onclick="toggleUserView('reg')" class="text-amber-600 dark:text-amber-400 font-bold hover:underline">Create an Account</a></p>
       </div>
 
@@ -2396,6 +2415,68 @@ document.addEventListener('DOMContentLoaded', () => {
       window.location.reload();
     }
   };
+</script>
+
+
+<script>
+function openForgotPasswordPrompt() {
+  const email = prompt("Enter your registered email address:");
+  if (!email) return;
+  const newPassword = prompt("Enter your new password:");
+  if (!newPassword) return;
+
+  fetch('/api/user/forgot-password', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, newPassword })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      alert(data.message);
+    } else {
+      alert(data.error || "Failed to reset password.");
+    }
+  })
+  .catch(err => {
+    alert("An error occurred. Please try again.");
+  });
+}
+</script>
+
+
+<script>
+function handleGoogleLogin(response) {
+  try {
+    const base64Url = response.credential.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    const googleUser = JSON.parse(jsonPayload);
+
+    fetch('/api/user/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: googleUser.name,
+        email: googleUser.email,
+        googleId: googleUser.sub
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        currentUser = data.user;
+        localStorage.setItem("currentUser", JSON.stringify(currentUser));
+        alert("Successfully logged in with Google!");
+        location.reload();
+      } else {
+        alert(data.error || "Google login failed.");
+      }
+    });
+  } catch (err) {
+    console.error("Google login parsing error:", err);
+  }
+}
 </script>
 
 </body>

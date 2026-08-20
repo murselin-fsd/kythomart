@@ -116,20 +116,28 @@ app.put("/api/products/:id", (req, res) => {
       return res.status(404).json({ success: false, error: "products.json not found" });
     }
     let products = JSON.parse(fs.readFileSync("products.json", "utf8") || "[]");
-    const index = products.findIndex(p => String(p.id) === String(rawId));
+    // Match by _id or id (string or number)
+    const index = products.findIndex(p => String(p._id || p.id) === String(rawId));
     
     if (index === -1) {
       return res.status(404).json({ success: false, error: "Product not found" });
     }
 
-    if (req.body.stock !== undefined) {
-      products[index].stock = parseInt(req.body.stock) || 0;
-    }
+    // Update customizable fields if provided
+    const p = products[index];
+    if (req.body.name !== undefined) p.name = req.body.name;
+    if (req.body.title !== undefined) p.title = req.body.title;
+    if (req.body.description !== undefined) p.description = req.body.description;
+    if (req.body.price !== undefined) p.price = parseFloat(req.body.price) || 0;
+    if (req.body.costPrice !== undefined) p.costPrice = parseFloat(req.body.costPrice) || 0;
+    if (req.body.category !== undefined) p.category = req.body.category;
+    if (req.body.stock !== undefined) p.stock = parseInt(req.body.stock) || 0;
+    if (req.body.image !== undefined) p.image = req.body.image;
 
     fs.writeFileSync("products.json", JSON.stringify(products, null, 2));
-    return res.json({ success: true, product: products[index] });
+    return res.json({ success: true, product: p });
   } catch (err) {
-    console.error("Stock update error:", err);
+    console.error("Product update error:", err);
     return res.status(500).json({ success: false, error: err.message });
   }
 });
@@ -408,6 +416,67 @@ app.post('/api/reviews', (req, res) => {
 
   writeData(REVIEWS_FILE, reviews);
   res.status(201).json({ success: true, reviews: reviews[productId] });
+});
+
+
+// Forgot Password Endpoint
+app.post('/api/user/forgot-password', (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !newPassword) {
+      return res.status(400).json({ success: false, error: "Email and new password are required." });
+    }
+    let users = readData(USERS_FILE);
+    const userIndex = users.findIndex(u => (u.email || '').toLowerCase() === email.trim().toLowerCase());
+    
+    if (userIndex === -1) {
+      return res.status(404).json({ success: false, error: "Email not found in our records." });
+    }
+
+    users[userIndex].newPassword = newPassword.trim();
+    users[userIndex].password = newPassword.trim(); // updating both fields for compatibility
+    writeData(USERS_FILE, users);
+
+    return res.json({ success: true, message: "Password updated successfully! You can now log in." });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+// Google Auth Endpoint
+app.post('/api/user/google', (req, res) => {
+  try {
+    const { name, email, googleId } = req.body;
+    if (!email) {
+      return res.status(400).json({ success: false, error: "Email required from Google." });
+    }
+    let users = readData(USERS_FILE);
+    let user = users.find(u => (u.email || '').toLowerCase() === email.toLowerCase());
+
+    if (!user) {
+      // Register new user via Google
+      user = {
+        id: Date.now(),
+        name: name || "Google User",
+        email: email,
+        googleId: googleId,
+        password: "GOOGLE_AUTH_USER",
+        cart: [],
+        wishlist: [],
+        orders: []
+      };
+      users.push(user);
+    } else {
+      user.googleId = googleId;
+    }
+    writeData(USERS_FILE, users);
+    return res.json({ success: true, user, message: "Google login successful!" });
+  } catch (err) {
+    console.error("Google auth error:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 app.post('/api/user/login', (req, res) => {

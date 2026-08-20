@@ -147,7 +147,7 @@
         <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
           <table class="w-full text-left text-sm text-slate-600">
             <thead class="bg-slate-100 text-xs uppercase text-slate-500 border-b">
-              <tr><th class="p-4">Product</th><th class="p-4">Selling Price</th><th class="p-4">Cost Price</th><th class="p-4">Profit Margin</th><th class="p-4">Stock</th><th class="p-4 text-right">Action</th></tr>
+              <tr data-id="${p._id || p.id}" class="cursor-pointer hover:bg-slate-50"><th class="p-4">Product</th><th class="p-4">Selling Price</th><th class="p-4">Cost Price</th><th class="p-4">Profit Margin</th><th class="p-4">Stock</th><th class="p-4 text-right">Action</th></tr>
             </thead>
             <tbody id="inventory-table-body" class="divide-y"></tbody>
           </table>
@@ -487,42 +487,46 @@
       }
     }
 
+    
     async function renderInventoryTable() {
       const res = await fetch('/api/products');
-      products = await res.json();
+      const productsList = await res.json();
       const sym = storeSettings.currency || '₹';
-      document.getElementById('inventory-table-body').innerHTML = products.map(p => {
+      document.getElementById('inventory-table-body').innerHTML = productsList.map(p => {
         const cost = p.costPrice || 0;
-        const profit = p.price - cost;
+        const profit = (p.price || 0) - cost;
         const margin = p.price > 0 ? ((profit / p.price) * 100).toFixed(1) : 0;
         const isOut = (p.stock || 0) <= 0;
+        const prodId = p._id || p.id;
         return `
-        <tr class="hover:bg-slate-50">
-          <td class="p-4 font-semibold text-slate-800 flex items-center gap-3"><img src="${p.image}" class="w-8 h-8 rounded-lg object-cover" />${p.name}</td>
-          <td class="p-4 font-bold text-slate-800">${sym}${(Number(p.price) || 0).toFixed(2)}</td>
-          <td class="p-4 text-slate-500">${sym}${cost.toFixed(2)}</td>
-          <td class="p-4">
-            <span class="bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded text-xs">
-              +${sym}${profit.toFixed(2)} (${margin}%)
-            </span>
-          </td>
-          <td class="p-4">
-            <span class="px-2.5 py-1 rounded-md text-xs font-bold ${isOut ? 'bg-rose-100 text-rose-800' : p.stock <= 4 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
-              ${isOut ? '🔴 Out of Stock' : `${p.stock} units ${p.stock <= 4 ? '⚠️ Low' : ''}`}
-            </span>
-          </td>
-          <td class="p-4 text-right flex items-center justify-end gap-2">
-            <button type="button" data-id="${p.id}" data-stock="${p.stock || 0}" data-id="${p.id}" data-stock="${p.stock || 0}" onclick="toggleOutOfStock(${p.id}, ${p.stock || 0})" class="text-xs font-bold px-2.5 py-1 rounded-lg ${!isOut ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}">
-              ${!isOut ? 'Mark Out of Stock' : 'Restock (10)'}
-            </button>
-            <button type="button" onclick="deleteProduct(${p.id})" class="text-rose-600 hover:underline text-xs font-bold">Delete</button>
-          </td>
-        </tr>
-      `;
+          <tr class="hover:bg-indigo-50/50 cursor-pointer transition-colors" onclick="openGodModeModal('${prodId}')">
+            <td class="p-4 font-semibold text-slate-800 flex items-center gap-3">
+              <img src="${p.image || 'https://via.placeholder.com/300'}" class="w-10 h-10 rounded-lg object-cover border" />
+              <div>
+                <div class="font-bold text-slate-900">${p.name || p.title || 'Product'}</div>
+                <div class="text-xs text-indigo-600 font-medium">Click to view & edit details</div>
+              </div>
+            </td>
+            <td class="p-4 font-bold text-slate-800">${sym}${(Number(p.price) || 0).toFixed(2)}</td>
+            <td class="p-4 font-bold text-slate-600">${sym}${(Number(p.costPrice) || 0).toFixed(2)}</td>
+            <td class="p-4">
+              <span class="bg-emerald-50 text-emerald-700 font-bold px-2 py-1 rounded text-xs">
+                +${sym}${profit.toFixed(2)} (${margin}%)
+              </span>
+            </td>
+            <td class="p-4">
+              <span class="px-2.5 py-1 rounded-md text-xs font-bold ${isOut ? 'bg-rose-100 text-rose-800' : p.stock <= 4 ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800'}">
+                ${isOut ? '🔴 Out of Stock' : `${p.stock} units ${p.stock <= 4 ? '⚠️ Low' : ''}`}
+              </span>
+            </td>
+            <td class="p-4 text-right" onclick="event.stopPropagation()">
+              <button type="button" onclick="deleteProduct('${prodId}')" class="text-rose-600 hover:underline text-xs font-bold">Delete</button>
+            </td>
+          </tr>
+        `;
       }).join('');
     }
-
-    
+  
 
 async function addNewProduct() {
   const nameInput = document.getElementById("new-prod-name");
@@ -860,9 +864,9 @@ async function renderInventoryTable() {
 <script>
   window.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("isAdminLoggedIn", "true");
-    const userField = document.getElementById("admin-username") || document.querySelector("input[type="text"]");
-    const passField = document.getElementById("admin-password") || document.querySelector("input[type="password"]");
-    const loginBtn = document.querySelector("button[type="submit"]") || document.querySelector("button");
+    const userField = document.getElementById("admin-username") || document.querySelector("input[type='text']");
+    const passField = document.getElementById("admin-password") || document.querySelector("input[type='password']");
+    const loginBtn = document.querySelector("button[type='submit']") || document.querySelector("button");
     
     if (userField && passField) {
       userField.value = "admin";
@@ -1001,5 +1005,5 @@ async function renderInventoryTable() {
       }
     </script>
   
-</body>
-</html>
+
+      

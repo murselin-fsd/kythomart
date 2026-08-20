@@ -1,5 +1,20 @@
 [
   {
+    "id": 1787245685011,
+    "name": "Apple iPhone 17 Pro Max (Cosmic Orange, 256 GB)",
+    "price": 147900,
+    "costPrice": 135000,
+    "category": "General",
+    "stock": 12,
+    "sizes": "Standard",
+    "description": "High quality product.",
+    "images": [
+      "/uploads/1787245684976--original-imahft6chnx2vbuy.webp",
+      "/uploads/1787245684976--original-imahft6chnx2vbuy.webp"
+    ],
+    "image": "/uploads/1787245684976--original-imahft6chnx2vbuy.webp"
+  },
+  {
     "id": 1787244457227,
     "name": "Crocs Bayband green Clog",
     "price": 234,
@@ -32,73 +47,5 @@
     "image": "/uploads/1787137861186-ios-m00a3hn-a-apple-original-imafvvgfmagzv3gg.webp",
     "sellingPrice": 27000,
     "title": "apple iwatch series 6  Red"
-  },
-  {
-    "id": 1787048683484,
-    "name": "Crocs Bayband White Clog",
-    "price": 2800,
-    "category": "Clogs",
-    "stock": 10,
-    "sizes": "UK7,UK8,UK,9,UK10",
-    "colors": "Default",
-    "images": [
-      "https://assets.jdwebnship.in/products/images/1785584398_kQZyOy.webp"
-    ],
-    "sellingPrice": 2800,
-    "costPrice": 0,
-    "title": "Crocs Bayband White Clog"
-  },
-  {
-    "id": 1,
-    "name": "Minimalist Leather Backpack",
-    "price": 1899,
-    "category": "Accessories",
-    "stock": 10,
-    "images": [
-      "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500"
-    ],
-    "sellingPrice": 1899,
-    "costPrice": 0,
-    "title": "Minimalist Leather Backpack"
-  },
-  {
-    "id": 2,
-    "name": "Wireless Studio Headphones",
-    "price": 2999,
-    "category": "Electronics",
-    "stock": 10,
-    "images": [
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500"
-    ],
-    "sellingPrice": 2999,
-    "costPrice": 0,
-    "title": "Wireless Studio Headphones"
-  },
-  {
-    "id": 3,
-    "name": "Insulated Stainless Bottle",
-    "price": 649,
-    "category": "Lifestyle",
-    "stock": 10,
-    "images": [
-      "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=500"
-    ],
-    "sellingPrice": 649,
-    "costPrice": 0,
-    "title": "Insulated Stainless Bottle"
-  },
-  {
-    "id": 1787137861217,
-    "title": "Untitled Product",
-    "sellingPrice": 0,
-    "costPrice": 134000,
-    "category": "General",
-    "stock": 12,
-    "sizes": "",
-    "images": [
-      "/uploads/1787243262910--original-imahft6chnx2vbuy.webp"
-    ],
-    "name": "Untitled Product",
-    "price": 0
   }
 ]

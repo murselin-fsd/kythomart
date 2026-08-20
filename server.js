@@ -1,4 +1,16 @@
 
+// MongoDB Atlas Connection
+const mongoose = require("mongoose");
+const MONGO_URI = process.env.MONGO_URI || "";
+if (MONGO_URI) {
+  mongoose.connect(MONGO_URI)
+    .then(() => console.log("Connected to MongoDB Atlas successfully!"))
+    .catch(err => console.error("MongoDB connection error:", err));
+} else {
+  console.log("No MONGO_URI provided. Running on local file storage fallback.");
+}
+
+
 // In-memory store for tracking failed login attempts (can be replaced with Redis/DB in production)
 const failedLogins = new Map(); // Format: email -> { count, lockUntil }
 

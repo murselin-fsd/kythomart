@@ -103,6 +103,15 @@ const REVIEWS_FILE = path.join(__dirname, 'reviews.json');
 const AUTH_FILE = path.join(__dirname, 'auth.json');
 const USERS_FILE = path.join(__dirname, 'users.json');
 
+
+const verifyAdmin = (req, res, next) => {
+  // Allow requests with header OR let admin.html load (we can secure admin.html APIs directly)
+  if (req.headers["x-admin-auth"] === "true" || req.path === "/admin") {
+    return next();
+  }
+  res.status(403).json({ error: "Unauthorized access. Admin only." });
+};
+
 const readData = (filePath, defaultData = []) => {
   try {
     if (!fs.existsSync(filePath)) {
@@ -268,7 +277,7 @@ app.post('/api/admin/login', (req, res) => {
   const u = (username || '').trim().toLowerCase();
   const p = (password || '').trim();
 
-  if ((u === (auth.username || 'admin').toLowerCase() && p === auth.password) || (u === 'admin' && p === 'admin123')) {
+  if ((u === (auth.username || 'admin').toLowerCase() && p === auth.password) ) {
     return res.json({ success: true, username: auth.username || 'admin' });
   }
   return res.status(401).json({ error: 'Invalid admin credentials.' });
@@ -278,7 +287,7 @@ app.post('/api/admin/change-password', (req, res) => {
   const { currentPassword, newUsername, newPassword } = req.body;
   const auth = readData(AUTH_FILE, { username: 'admin', password: 'admin123' });
 
-  if ((currentPassword || '').trim() !== auth.password && (currentPassword || '').trim() !== 'admin123') {
+  if ((currentPassword || '').trim() !== auth.password ) {
     return res.status(400).json({ error: 'Current password does not match.' });
   }
 
@@ -539,7 +548,7 @@ app.get('/api/admin/analytics', (req, res) => {
   });
 });
 
-app.get('/admin', (req, res) => {
+app.get('/admin', verifyAdmin, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 

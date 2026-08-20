@@ -427,10 +427,88 @@
               <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Delivery Street Address</label>
               <textarea id="prof-address" placeholder="Delivery Street Address" class="w-full border dark:border-slate-700 bg-transparent rounded-xl p-3 text-sm text-slate-900 dark:text-slate-100"></textarea>
             </div>
+            <button type="button" 
+          <!-- User Email & Password Security Section -->
+          <div class="mt-6 pt-6 border-t border-slate-100 dark:border-slate-700">
+            <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 mb-3 uppercase tracking-wider">Change Email & Password (OTP Secured)</h4>
+            <div class="space-y-4 mb-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">New Email Address</label>
+                <input type="email" id="user-new-email" placeholder="Enter new email" class="w-full border dark:border-slate-700 bg-transparent rounded-xl p-3 text-sm text-slate-900 dark:text-slate-100">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">New Password</label>
+                <input type="password" id="user-new-password" placeholder="Enter new password" class="w-full border dark:border-slate-700 bg-transparent rounded-xl p-3 text-sm text-slate-900 dark:text-slate-100">
+              </div>
+            </div>
+            <button type="button" onclick="requestUserCredentialOTP()" class="px-6 py-3 bg-slate-900 dark:bg-amber-600 hover:bg-slate-800 text-white text-xs font-extrabold rounded-xl transition shadow-md mb-4">
+              Request OTP & Update Credentials
+            </button>
+          </div>
+
+          <!-- User OTP Modal -->
+          <div id="user-otp-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl w-full max-w-sm border border-slate-100 dark:border-slate-700">
+              <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">Verify OTP</h3>
+              <p class="text-xs text-slate-500 mb-4">Enter the 6-digit OTP sent to your registered Email and WhatsApp.</p>
+              <input type="text" id="user-otp-code" placeholder="Enter 6-digit OTP" maxlength="6" class="w-full text-center tracking-widest text-lg font-bold p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 mb-4">
+              <div class="flex space-x-2">
+                <button onclick="verifyAndSaveUserCredentials()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl transition">Verify & Save</button>
+                <button onclick="document.getElementById('user-otp-modal').classList.add('hidden')" class="px-4 py-2.5 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-xl transition">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <script>
+            async function requestUserCredentialOTP() {
+              if (!currentUser) return alert("Please sign in first.");
+              const newEmail = document.getElementById("user-new-email").value.trim();
+              const newPassword = document.getElementById("user-new-password").value.trim();
+              if (!newEmail && !newPassword) return alert("Please enter a new email or new password.");
+              try {
+                const res = await fetch("/api/user/request-update-otp", {
+                  method: "POST", headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ currentEmail: currentUser.email, newEmail, newPassword })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                  alert(data.message);
+                  document.getElementById("user-otp-modal").classList.remove("hidden");
+                } else { alert(data.error || "Failed to send OTP."); }
+              } catch (err) { console.error("OTP request error:", err); }
+            }
+
+            async function verifyAndSaveUserCredentials() {
+              const otp = document.getElementById("user-otp-code").value.trim();
+              if (!otp || otp.length !== 6) return alert("Please enter a valid 6-digit OTP code.");
+              try {
+                const res = await fetch("/api/user/verify-and-update", {
+                  method: "POST", headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ currentEmail: currentUser.email, otp })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                  alert(data.message);
+                  currentUser = data.user;
+                  localStorage.setItem("currentUser", JSON.stringify(currentUser));
+                  document.getElementById("user-otp-modal").classList.add("hidden");
+                  updateUserUI();
+                  loadUserPastOrders();
+                  document.getElementById("user-new-email").value = "";
+                  document.getElementById("user-new-password").value = "";
+                } else { alert(data.error || "Verification failed."); }
+              } catch (err) { console.error("Verification error:", err); }
+            }
+          </script>
+
             <button type="button" onclick="saveUserProfile()" class="bg-amber-600 hover:bg-amber-700 text-white px-6 py-3 rounded-xl text-xs font-extrabold transition shadow-md">Save Profile Updates</button>
           </div>
         </div>
       </div>
+
+      
+
+
 
       <!-- Feedback & Information Section -->
       <div class="bg-gradient-to-br from-slate-900 to-slate-950 text-white p-8 rounded-3xl border border-slate-800 shadow-xl space-y-6">

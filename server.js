@@ -554,6 +554,70 @@ app.get('/admin', verifyAdmin, (req, res) => {
 
 app.use((req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
+
+// Temporary store for OTPs: { email: { otp, newEmail, newPassword, expires } }
+const pendingOTPs = {};
+
+app.post('/api/user/request-update-otp', (req, res) => {
+  const { currentEmail, newEmail, newPassword } = req.body;
+  const users = readData(USERS_FILE);
+  const user = users.find(u => u.email.toLowerCase() === currentEmail.toLowerCase());
+
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  pendingOTPs[currentEmail] = {
+    otp,
+    newEmail: newEmail ? newEmail.trim() : user.email,
+    newPassword: newPassword ? newPassword.trim() : null,
+    expires: Date.now() + 10 * 60 * 1000 // 10 minutes expiry
+  };
+
+  // Simulate sending via Email & WhatsApp (Logged to console / ready for Twilio/Nodemailer)
+  console.log("=================================================");
+  console.log(`🔐 [OTP SENT] To Email (${user.email}) & WhatsApp (${user.phone || "N/A"}): ${otp}`);
+  console.log("=================================================");
+
+  res.json({ success: true, message: "OTP sent to your registered email and WhatsApp." });
+});
+
+app.post('/api/user/verify-and-update', (req, res) => {
+  const { currentEmail, otp } = req.body;
+  const record = pendingOTPs[currentEmail];
+
+  if (!record) {
+    return res.status(400).json({ error: "No pending update request found. Please request a new OTP." });
+  }
+
+  if (Date.now() > record.expires) {
+    delete pendingOTPs[currentEmail];
+    return res.status(400).json({ error: "OTP has expired. Please request a new one." });
+  }
+
+  if (record.otp !== otp.trim()) {
+    return res.status(400).json({ error: "Invalid OTP code." });
+  }
+
+  let users = readData(USERS_FILE);
+  let userIndex = users.findIndex(u => u.email.toLowerCase() === currentEmail.toLowerCase());
+
+  if (userIndex === -1) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  // Update user details securely
+  if (record.newEmail) users[userIndex].email = record.newEmail;
+  if (record.newPassword) users[userIndex].password = record.newPassword;
+
+  writeData(USERS_FILE, users);
+  delete pendingOTPs[currentEmail];
+
+  res.json({ success: true, user: users[userIndex], message: "Account details updated successfully!" });
+});
+
 app.listen(PORT, () => {
   console.log(`=================================================`);
   console.log(`🚀 Customer Store: http://localhost:${PORT}`);

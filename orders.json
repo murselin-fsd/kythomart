@@ -1,1 +1,78 @@
-[]
+[
+  {
+    "orderId": "ORD-129063",
+    "date": "2026-08-20T19:47:58.620Z",
+    "customer": {
+      "name": "vill-gobra, post-jamitya, city- tamluk, 721134",
+      "email": "Murselin.khan.320@gmail.com",
+      "phone": "08250628028",
+      "address": "vill-gobra, post-jamitya, city- tamluk, 721134\ngobra furniture factory",
+      "city": "PASKURA",
+      "zip": "721134"
+    },
+    "items": [
+      {
+        "id": 1787244457227,
+        "name": "Crocs Bayband green Clog",
+        "price": 234,
+        "costPrice": 123,
+        "category": "General",
+        "stock": 12,
+        "sizes": "Standard",
+        "description": "High quality product.",
+        "images": [
+          "/uploads/1787244457200--original-imahft57f3qjg325.webp",
+          "/uploads/1787244457200--original-imahft57f3qjg325.webp"
+        ],
+        "image": "/uploads/1787244457200--original-imahft57f3qjg325.webp",
+        "title": "Crocs Bayband green Clog",
+        "sellingPrice": 234,
+        "quantity": 1,
+        "selectedSize": "Standard"
+      }
+    ],
+    "total": 234,
+    "paymentMethod": "Cash on Delivery (COD)",
+    "paymentStatus": "Pending (Cash on Delivery)",
+    "status": "Dispatched",
+    "giftNote": ""
+  },
+  {
+    "orderId": "ORD-559065",
+    "date": "2026-08-20T19:39:46.206Z",
+    "customer": {
+      "name": "20th main road,Raghavendra layout,garvebhavi palya, karnataka,560068",
+      "email": "Murselin.khan.320@gmail.com",
+      "phone": "08250628028",
+      "address": "20th main road,Raghavendra layout,garvebhavi palya, karnataka,560068\nmico layout",
+      "city": "Bangalore",
+      "zip": "560068"
+    },
+    "items": [
+      {
+        "id": 1787245685011,
+        "name": "Apple iPhone 17 Pro Max (Cosmic Orange, 256 GB)",
+        "price": 147900,
+        "costPrice": 135000,
+        "category": "General",
+        "stock": 12,
+        "sizes": "Standard",
+        "description": "High quality product.",
+        "images": [
+          "/uploads/1787245684976--original-imahft6chnx2vbuy.webp",
+          "/uploads/1787245684976--original-imahft6chnx2vbuy.webp"
+        ],
+        "image": "/uploads/1787245684976--original-imahft6chnx2vbuy.webp",
+        "title": "Apple iPhone 17 Pro Max (Cosmic Orange, 256 GB)",
+        "sellingPrice": 147900,
+        "quantity": 1,
+        "selectedSize": "Standard"
+      }
+    ],
+    "total": 133110,
+    "paymentMethod": "Cash on Delivery (COD)",
+    "paymentStatus": "Pending (Cash on Delivery)",
+    "status": "Delivered",
+    "giftNote": ""
+  }
+]

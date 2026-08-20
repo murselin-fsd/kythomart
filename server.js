@@ -702,6 +702,47 @@ app.post('/api/database/user-data', (req, res) => {
   res.json({ success: true, message: "User data successfully saved to database." });
 });
 
+
+// Handle Product Creation with multi-images array
+app.post("/api/products", (req, res) => {
+  try {
+    if (!fs.existsSync("products.json")) {
+      fs.writeFileSync("products.json", "[]");
+    }
+    let products = JSON.parse(fs.readFileSync("products.json", "utf8") || "[]");
+    
+    const newId = products.length > 0 ? Math.max(...products.map(p => p.id || 0)) + 1 : 1;
+    
+    let imagesArr = [];
+    if (req.body.images) {
+      imagesArr = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
+    } else if (req.body.image) {
+      imagesArr = [req.body.image];
+    } else {
+      imagesArr = ["https://via.placeholder.com/150"];
+    }
+
+    const newProduct = {
+      id: newId,
+      title: req.body.title || "Untitled Product",
+      sellingPrice: parseFloat(req.body.sellingPrice) || 0,
+      costPrice: parseFloat(req.body.costPrice) || 0,
+      category: req.body.category || "General",
+      stock: parseInt(req.body.stock) || 10,
+      sizes: req.body.sizes || "",
+      images: imagesArr
+    };
+
+    products.push(newProduct);
+    fs.writeFileSync("products.json", JSON.stringify(products, null, 2));
+    return res.json({ success: true, product: newProduct });
+  } catch (err) {
+    console.error("Error creating product:", err);
+    return res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`=================================================`);
   console.log(`🚀 Customer Store: http://localhost:${PORT}`);

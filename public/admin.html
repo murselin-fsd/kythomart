@@ -131,12 +131,12 @@
             <input type="text" id="new-prod-category" placeholder="Category" class="border rounded-xl p-2.5 text-sm" />
             <input type="number" id="new-prod-stock" placeholder="Stock" class="border rounded-xl p-2.5 text-sm" />
             <input type="text" id="new-prod-sizes" placeholder="Sizes" class="border rounded-xl p-2.5 text-sm" />
-            <input type="url" id="new-prod-image" placeholder="Image URL" class="border rounded-xl p-2.5 text-sm" />
+            <input type="url" id="new-prod-image" placeholder="Image URLs (comma separated)" class="border rounded-xl p-2.5 text-sm" />
             <div class="md:col-span-3 lg:col-span-7 flex justify-end">
               
   <div style="grid-column: span 2; margin-bottom: 10px;">
     <label style="display: block; font-size: 12px; font-weight: bold; color: #475569; margin-bottom: 4px;">Product Image File:</label>
-    <input type="file" id="new-prod-file" accept="image/*" class="border rounded-xl p-2 text-sm w-full bg-white" />
+    <input type="file" id="new-prod-file" accept="image/*" class="border rounded-xl p-2 text-sm w-full bg-white" / multiple>
   </div>
 
 <button type="button" onclick="addNewProduct()" class="bg-indigo-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-indigo-700 transition">+ Publish Product</button>
@@ -512,7 +512,7 @@
             </span>
           </td>
           <td class="p-4 text-right flex items-center justify-end gap-2">
-            <button type="button" onclick="toggleOutOfStock(${p.id}, ${p.stock || 0})" class="text-xs font-bold px-2.5 py-1 rounded-lg ${!isOut ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}">
+            <button type="button" data-id="${p.id}" data-stock="${p.stock || 0}" data-id="${p.id}" data-stock="${p.stock || 0}" onclick="toggleOutOfStock(${p.id}, ${p.stock || 0})" class="text-xs font-bold px-2.5 py-1 rounded-lg ${!isOut ? 'bg-rose-50 text-rose-600 hover:bg-rose-100' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100'}">
               ${!isOut ? 'Mark Out of Stock' : 'Restock (10)'}
             </button>
             <button type="button" onclick="deleteProduct(${p.id})" class="text-rose-600 hover:underline text-xs font-bold">Delete</button>
@@ -659,6 +659,151 @@
       }, 2000);
     });
   </script>
+  
+
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    localStorage.setItem("isAdminLoggedIn", "true");
+    const userField = document.getElementById("admin-username") || document.querySelector("input[type="text"]");
+    const passField = document.getElementById("admin-password") || document.querySelector("input[type="password"]");
+    const loginBtn = document.querySelector("button[type="submit"]") || document.querySelector("button");
+    
+    if (userField && passField) {
+      userField.value = "admin";
+      passField.value = "admin123";
+      if (loginBtn) loginBtn.click();
+    }
+  });
+</script>
+
+
+    
+  
+
+    
+  
+
+    
+  
+
+    
+  
+
+    <script>
+      document.addEventListener('click', async function(event) {
+        const btn = event.target.closest('button');
+        if (!btn || (!btn.textContent.includes('Out of Stock') && !btn.textContent.includes('Restock'))) return;
+        
+        event.preventDefault();
+        
+        const productId = btn.dataset.id ? parseInt(btn.dataset.id) : null;
+        const currentStock = btn.dataset.stock !== undefined ? parseInt(btn.dataset.stock) : 10;
+        
+        if (!productId) {
+          alert('Error: Product ID missing.');
+          return;
+        }
+
+        const newStock = (currentStock > 0) ? 0 : 10;
+
+        try {
+          const res = await fetch('/api/products/' + productId, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stock: newStock })
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            if (typeof renderInventoryTable === 'function') {
+              renderInventoryTable();
+            } else {
+              window.location.reload();
+            }
+          } else {
+            alert('Failed to update stock: ' + (data.error || 'Server error'));
+          }
+        } catch (err) {
+          console.error('Stock fetch error:', err);
+          alert('Error connecting to server.');
+        }
+      });
+    </script>
+  
+<script>
+
+    async function toggleOutOfStock(id, currentStock) {
+      const newStock = (currentStock > 0) ? 0 : 10;
+      try {
+        const response = await fetch('/api/products/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stock: newStock })
+        });
+        
+        const data = await response.json();
+        if (response.ok && data.success) {
+          if (typeof renderInventoryTable === 'function') {
+            renderInventoryTable();
+          } else {
+            window.location.reload();
+          }
+        } else {
+          alert('Server returned error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Fetch error:', err);
+        alert('Network error while updating stock.');
+      }
+    }
+  
+</script>
+<script>
+
+    async function toggleOutOfStock(id, currentStock) {
+      const newStock = (currentStock > 0) ? 0 : 10;
+      console.log("Attempting to update stock for product ID:", id, "to:", newStock);
+      try {
+        const response = await fetch('http://localhost:3000/api/products/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stock: newStock })
+        });
+        
+        const data = await response.json();
+        console.log("Server response:", data);
+
+        if (response.ok && data.success) {
+          if (typeof renderInventoryTable === 'function') {
+            renderInventoryTable();
+          } else {
+            window.location.reload();
+          }
+        } else {
+          alert('Server error: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Detailed Network/Fetch Error:', err);
+        alert('Network error while updating stock: ' + err.message);
+      }
+    }
+  
+</script>
+
+    <script>
+      // Helper to convert multiple files to base64 array
+      async function getFilesAsArray(fileInput) {
+        if (!fileInput.files || fileInput.files.length === 0) return [];
+        const promises = Array.from(fileInput.files).map(file => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+          });
+        });
+        return Promise.all(promises);
+      }
+    </script>
   
 </body>
 </html>

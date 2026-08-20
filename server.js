@@ -473,6 +473,17 @@ app.post('/api/place-order', (req, res) => {
   res.json({ success: true, orderId: newOrder.orderId, order: newOrder });
 });
 
+
+app.get('/api/my-orders', (req, res) => {
+  const email = req.query.email;
+  if (!email) {
+    return res.status(400).json({ error: "User email is required to fetch personal orders." });
+  }
+  const orders = readData(ORDERS_FILE);
+  const userOrders = orders.filter(o => o.customer && o.customer.email && o.customer.email.toLowerCase() === email.toLowerCase());
+  res.json(userOrders);
+});
+
 app.get('/api/orders', (req, res) => res.json(readData(ORDERS_FILE)));
 
 app.patch('/api/orders/:id/status', (req, res) => {

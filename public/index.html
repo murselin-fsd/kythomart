@@ -1926,6 +1926,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   <!-- Professional E-Commerce Footer Console -->
+  
+  <!-- About the Founder & Company - Premium Luxury UI -->
+  
   <footer class="bg-slate-900 text-slate-300 text-xs mt-16 pt-12 pb-8 border-t border-slate-800">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-2 md:grid-cols-5 gap-8 pb-12 border-b border-slate-800">
       
@@ -1934,7 +1937,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <p class="font-bold text-slate-400 uppercase tracking-widest text-[11px] mb-4">About</p>
         <ul class="space-y-2.5 font-medium">
           <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
-          <li><a href="#" class="hover:text-white transition-colors">About Us</a></li>
+          <li><a href="#" onclick="openAboutModal(); return false;" href="#" class="hover:text-white transition-colors">About Us</a></li>
           <li><a href="#" class="hover:text-white transition-colors">Careers</a></li>
           <li><a href="#" class="hover:text-white transition-colors">KythoStories</a></li>
           <li><a href="#" class="hover:text-white transition-colors">Corporate Information</a></li>
@@ -2815,5 +2818,62 @@ function closeOrderTracker() {
   });
   </script>
   
-</body>
+
+  <!-- About Us Modal / View -->
+  <div id="about-us-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm hidden">
+    <div class="relative w-full max-w-4xl mx-4 bg-gradient-to-br from-slate-900 via-zinc-900 to-amber-950/90 rounded-3xl border border-amber-500/40 p-8 md:p-12 text-white shadow-2xl overflow-y-auto max-h-[90vh]">
+      <button onclick="closeAboutModal()" class="absolute top-6 right-6 text-slate-400 hover:text-white bg-white/10 p-2 rounded-full transition">
+        ✕
+      </button>
+
+      <div class="space-y-8">
+        <div class="flex flex-col md:flex-row items-center gap-8">
+          <div class="relative w-32 h-32 md:w-40 md:h-40 rounded-3xl bg-slate-900 border-2 border-amber-500/50 flex items-center justify-center text-transparent bg-clip-text bg-gradient-to-tr from-amber-400 to-orange-300 text-5xl font-black shadow-2xl flex-shrink-0">
+            MK
+          </div>
+          <div class="space-y-3 text-center md:text-left">
+            <span class="inline-flex items-center gap-1.5 bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-3.5 py-1 rounded-full uppercase tracking-widest shadow-sm">
+              ✨ Visionary Leadership
+            </span>
+            <h2 class="text-3xl md:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-white via-amber-100 to-amber-300">
+              Murselin Khan
+            </h2>
+            <p class="text-sm md:text-base text-amber-400/90 font-semibold tracking-wide">
+              Software Engineer <span class="text-slate-400 font-normal">| B.Tech in Computer Science & Engineering</span>
+            </p>
+            <p class="text-slate-300 leading-relaxed text-sm md:text-base font-normal">
+              Bridging technical excellence with user-centric design. Founded with a passion for building robust, scalable architectures and delivering seamless digital commerce experiences.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-amber-500/20">
+          <div class="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 space-y-3">
+            <h3 class="text-xl font-extrabold text-white">🏢 Company Overview</h3>
+            <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+              KythoMart is engineered for the modern digital economy, delivering high-quality essentials, lightning-fast fulfillment, and secure multi-payment checkout workflows powered by cutting-edge web technologies.
+            </p>
+          </div>
+          <div class="bg-white/5 backdrop-blur-md p-6 rounded-2xl border border-white/10 space-y-3">
+            <h3 class="text-xl font-extrabold text-white">🌍 Future Global Goals</h3>
+            <p class="text-xs md:text-sm text-slate-300 leading-relaxed">
+              Our long-term roadmap focuses on international market expansion, integrating AI-driven personalized discovery, and scaling our logistics network to serve a worldwide customer base.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function openAboutModal() {
+      const modal = document.getElementById('about-us-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+    function closeAboutModal() {
+      const modal = document.getElementById('about-us-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+  </script>
+  </body>
 </html>

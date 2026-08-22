@@ -2061,6 +2061,21 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <div>
         © 2007-2026 KythoMart.com
+  <div class="flex-1 max-w-sm mx-6 hidden md:block" id="top-header-search-bar">
+    <div class="relative flex items-center">
+      <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-amber-500">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      </div>
+      <input 
+        type="text" 
+        id="universal-search-input" 
+        placeholder="Search products..."
+        oninput="handleUniversalSearch(this.value)"
+        class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl pl-10 pr-4 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500"
+      />
+    </div>
+  </div>
+
   
 
       </div>

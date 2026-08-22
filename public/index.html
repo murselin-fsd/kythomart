@@ -3032,5 +3032,67 @@ function closeOrderTracker() {
       }
     });
   </script>
+
+  <!-- Safe Search Injector -->
+  <script>
+    window.addEventListener("DOMContentLoaded", () => {
+      if (document.getElementById("universal-search-input")) return;
+
+      const storefrontBtn = Array.from(document.querySelectorAll("button, a")).find(el => el.innerText && el.innerText.trim() === "Storefront");
+      if (storefrontBtn) storefrontBtn.style.display = "none";
+
+      const brandLogo = Array.from(document.querySelectorAll("div")).find(el => el.innerText && el.innerText.includes("KythoMart.com"));
+      if (brandLogo && brandLogo.parentElement) {
+        const headerRow = brandLogo.parentElement;
+        headerRow.style.display = "flex";
+        headerRow.style.alignItems = "center";
+        headerRow.style.justifyContent = "space-between";
+
+        const searchWrapper = document.createElement("div");
+        searchWrapper.className = "flex-1 max-w-xl mx-4 hidden md:block";
+        searchWrapper.innerHTML = `
+          <div class="relative flex items-center">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-amber-500">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </div>
+            <input 
+              type="text" 
+              id="universal-search-input" 
+              placeholder="Search products (e.g. iPhone, Clog, Watch)..."
+              class="w-full bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl pl-10 pr-14 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition-all shadow-inner"
+              oninput="handleUniversalSearch(this.value)"
+            />
+            <div class="absolute right-3 flex items-center">
+              <kbd class="text-[9px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700">⌘K</kbd>
+            </div>
+          </div>
+        `;
+
+        brandLogo.after(searchWrapper);
+      }
+    });
+
+    function handleUniversalSearch(query) {
+      const q = query.toLowerCase().trim();
+      document.querySelectorAll("div").forEach(card => {
+        const txt = card.innerText || "";
+        const isProduct = (txt.includes("₹") && (txt.includes("View Details") || txt.includes("left"))) || 
+                          txt.toLowerCase().includes("apple iphone") || 
+                          txt.toLowerCase().includes("crocs bayband") || 
+                          txt.toLowerCase().includes("apple iwatch");
+        if (isProduct && card.children.length < 5) {
+          card.style.display = (q === "" || txt.toLowerCase().includes(q)) ? "" : "none";
+        }
+      });
+    }
+
+    window.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        const input = document.getElementById("universal-search-input");
+        if (input) input.focus();
+      }
+    });
+  </script>
 </body>
 </html>

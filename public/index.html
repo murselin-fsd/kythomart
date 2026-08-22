@@ -2875,5 +2875,101 @@ function closeOrderTracker() {
       if (modal) modal.classList.add('hidden');
     }
   </script>
+  
+  <!-- Voice-to-Cart Quick Order Bar -->
+  <div id="voice-to-cart-widget" class="fixed bottom-6 right-24 z-40 bg-slate-900/90 backdrop-blur-md border border-amber-500/40 text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-3 transition-all duration-300">
+    <button id="voice-btn" onclick="toggleVoiceRecognition()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 p-2 rounded-full font-bold shadow-md transition flex items-center justify-center w-9 h-9" title="Voice Quick Order">
+      🎤
+    </button>
+    <div class="flex flex-col">
+      <span id="voice-status" class="text-xs font-semibold text-amber-300">Voice-to-Cart</span>
+      <span id="voice-transcript" class="text-[10px] text-slate-300">Click mic to speak item</span>
+    </div>
+  </div>
+
+  <script>
+    let recognition;
+    let isListening = false;
+
+    function toggleVoiceRecognition() {
+      const statusEl = document.getElementById('voice-status');
+      const transcriptEl = document.getElementById('voice-transcript');
+      const micBtn = document.getElementById('voice-btn');
+
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert('Speech recognition is not supported in this browser. Try Chrome or Edge.');
+        return;
+      }
+
+      if (isListening) {
+        if (recognition) recognition.stop();
+        isListening = false;
+        micBtn.classList.remove('bg-red-500', 'animate-pulse');
+        micBtn.classList.add('bg-amber-500');
+        statusEl.innerText = 'Voice-to-Cart';
+        return;
+      }
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        isListening = true;
+        micBtn.classList.remove('bg-amber-500');
+        micBtn.classList.add('bg-red-500', 'animate-pulse');
+        statusEl.innerText = 'Listening...';
+        transcriptEl.innerText = 'Speak now (e.g., "biryani")';
+      };
+
+      recognition.onresult = (event) => {
+        const spokenText = event.results[0][0].transcript.toLowerCase();
+        transcriptEl.innerText = `Heard: "${spokenText}"`;
+        processVoiceOrder(spokenText);
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        statusEl.innerText = 'Error occurred';
+        isListening = false;
+        micBtn.classList.remove('bg-red-500', 'animate-pulse');
+        micBtn.classList.add('bg-amber-500');
+      };
+
+      recognition.onend = () => {
+        isListening = false;
+        micBtn.classList.remove('bg-red-500', 'animate-pulse');
+        micBtn.classList.add('bg-amber-500');
+        setTimeout(() => {
+          if (!isListening) statusEl.innerText = 'Voice-to-Cart';
+        }, 3000);
+      };
+
+      recognition.start();
+    }
+
+    function processVoiceOrder(text) {
+      const statusEl = document.getElementById('voice-status');
+      // Search global products array if available in your store script
+      if (typeof products !== 'undefined' && Array.isArray(products)) {
+        const matchedProduct = products.find(p => text.includes(p.name.toLowerCase()) || p.name.toLowerCase().includes(text));
+        if (matchedProduct) {
+          if (typeof addToCart === 'function') {
+            addToCart(matchedProduct.id);
+            statusEl.innerText = `Added: ${matchedProduct.name}!`;
+          } else {
+            statusEl.innerText = 'Matched product found!';
+          }
+        } else {
+          statusEl.innerText = 'Product not found in catalog';
+        }
+      } else {
+        // Fallback simulation if products array is scoped differently
+        statusEl.innerText = `Command received: ${text}`;
+      }
+    }
+  </script>
   </body>
 </html>
